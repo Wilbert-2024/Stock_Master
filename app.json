@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Proyecto_StokMaster",
+    "slug": "Proyecto_StokMaster",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "stokmaster",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#001B3F"
+    },
+    "userInterfaceStyle": "automatic",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "icon": "./assets/images/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#001B3F"
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir que StokMaster use la camara para escanear codigos de barras"
+        }
+      ]
+    ]
+  }
+}
