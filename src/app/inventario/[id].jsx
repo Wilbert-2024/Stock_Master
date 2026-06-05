@@ -28,8 +28,10 @@ import {
   eliminarProducto,
   obtenerProducto,
 } from "../../services/productService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 export default function ProductDetailScreen() {
+  const { colors } = useAppTheme();
   const { id } = useLocalSearchParams();
   const scrollRef = useRef(null);
   const fieldPositions = useRef({});
@@ -473,27 +475,34 @@ export default function ProductDetailScreen() {
             </Text>
           ) : null}
 
-          <View style={styles.calculationBox}>
-            <Text style={styles.calculationTitle}>Calculo de medida</Text>
-            <Text style={styles.calculationText}>
+          <View
+            style={[
+              styles.calculationBox,
+              { backgroundColor: colors.cardMuted, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.calculationTitle, { color: colors.text }]}>
+              Calculo de medida
+            </Text>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Unidad minima: {measurementType.baseLabel}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               1 {presentation.label} ={" "}
               {formatBaseQuantity(
                 cantidadPorPresentacion,
                 measurementType.baseLabel,
               )}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Precio por {measurementType.baseLabel}:{" "}
               {formatCurrency(precioBase)}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Stock guardado:{" "}
               {formatBaseQuantity(stockBase, measurementType.baseLabel)}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Alerta bajo stock:{" "}
               {formatBaseQuantity(stockMinimoBase, measurementType.baseLabel)}
             </Text>

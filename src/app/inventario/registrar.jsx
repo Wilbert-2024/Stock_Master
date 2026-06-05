@@ -24,8 +24,10 @@ import {
   getPresentation,
   getPresentationOptions,
 } from "../../constants/measurements";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 export default function RegistrarProductoScreen() {
+  const { colors } = useAppTheme();
   const { codigo_barras } = useLocalSearchParams();
   const scrollRef = useRef(null);
   const fieldPositions = useRef({});
@@ -62,6 +64,20 @@ export default function RegistrarProductoScreen() {
     Number.isInteger(stockMinimoNumber) && stockMinimoNumber >= 0
       ? stockMinimoNumber * cantidadPorPresentacion
       : 0;
+  const themedInputStyle = {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    color: colors.text,
+  };
+  const themedOptionStyle = {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+  };
+  const themedOptionActiveStyle = {
+    backgroundColor: colors.welcome,
+    borderColor: colors.success,
+  };
+  const themedMutedText = { color: colors.textMuted };
 
   const cargarCategorias = useCallback(async () => {
     try {
@@ -234,13 +250,18 @@ export default function RegistrarProductoScreen() {
   };
 
   return (
-    <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Registrar Producto</Text>
+    <ScrollView
+      ref={scrollRef}
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>Registrar Producto</Text>
 
       <TextInput
         onLayout={registrarPosicion("nombre")}
         placeholder="Nombre"
-        style={[styles.input, errores.nombre && styles.inputError]}
+        placeholderTextColor={colors.textMuted}
+        style={[styles.input, themedInputStyle, errores.nombre && styles.inputError]}
         value={nombre}
         onChangeText={(value) => {
           setNombre(value);
@@ -251,16 +272,24 @@ export default function RegistrarProductoScreen() {
 
       <TextInput
         placeholder="Codigo de barras (opcional)"
-        style={styles.input}
+        placeholderTextColor={colors.textMuted}
+        style={[styles.input, themedInputStyle]}
         value={codigoBarras}
         onChangeText={setCodigoBarras}
       />
 
-      <Text style={styles.label}>Categoria</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Categoria</Text>
       {cargandoCategorias ? (
-        <View style={styles.categoryLoading}>
+        <View
+          style={[
+            styles.categoryLoading,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <ActivityIndicator color="#003B95" />
-          <Text style={styles.categoryLoadingText}>Cargando categorias...</Text>
+          <Text style={[styles.categoryLoadingText, themedMutedText]}>
+            Cargando categorias...
+          </Text>
         </View>
       ) : (
         <View
@@ -272,7 +301,9 @@ export default function RegistrarProductoScreen() {
               key={categoria.id}
               style={[
                 styles.optionButton,
+                themedOptionStyle,
                 categoriaId === categoria.id && styles.optionButtonActive,
+                categoriaId === categoria.id && themedOptionActiveStyle,
               ]}
               onPress={() => {
                 setCategoriaId(categoria.id);
@@ -282,7 +313,9 @@ export default function RegistrarProductoScreen() {
               <Text
                 style={[
                   styles.optionText,
+                  { color: colors.text },
                   categoriaId === categoria.id && styles.optionTextActive,
+                  categoriaId === categoria.id && { color: colors.success },
                 ]}
               >
                 {categoria.nombre}
@@ -305,7 +338,8 @@ export default function RegistrarProductoScreen() {
       <TextInput
         onLayout={registrarPosicion("precio")}
         placeholder="Precio de la presentacion"
-        style={[styles.input, errores.precio && styles.inputError]}
+        placeholderTextColor={colors.textMuted}
+        style={[styles.input, themedInputStyle, errores.precio && styles.inputError]}
         keyboardType="numeric"
         value={precio}
         onChangeText={(value) => {
@@ -315,13 +349,14 @@ export default function RegistrarProductoScreen() {
       />
       {errores.precio ? <Text style={styles.errorText}>{errores.precio}</Text> : null}
 
-      <Text style={styles.label}>Tipo de medida</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Tipo de medida</Text>
       <View style={styles.segmentGroup}>
         {MEASUREMENT_TYPES.map((type) => (
           <TouchableOpacity
             key={type.id}
             style={[
               styles.segmentButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
               tipoMedida === type.id && styles.segmentButtonActive,
             ]}
             onPress={() => seleccionarTipoMedida(type.id)}
@@ -329,6 +364,7 @@ export default function RegistrarProductoScreen() {
             <Text
               style={[
                 styles.segmentText,
+                { color: colors.text },
                 tipoMedida === type.id && styles.segmentTextActive,
               ]}
             >
@@ -338,23 +374,29 @@ export default function RegistrarProductoScreen() {
         ))}
       </View>
 
-      <Text style={styles.helperText}>{measurementType.description}</Text>
+      <Text style={[styles.helperText, themedMutedText]}>
+        {measurementType.description}
+      </Text>
 
-      <Text style={styles.label}>Presentacion</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Presentacion</Text>
       <View style={styles.optionGrid}>
         {presentationOptions.map((option) => (
           <TouchableOpacity
             key={option.id}
             style={[
               styles.optionButton,
+              themedOptionStyle,
               presentacionId === option.id && styles.optionButtonActive,
+              presentacionId === option.id && themedOptionActiveStyle,
             ]}
             onPress={() => setPresentacionId(option.id)}
           >
             <Text
               style={[
                 styles.optionText,
+                { color: colors.text },
                 presentacionId === option.id && styles.optionTextActive,
+                presentacionId === option.id && { color: colors.success },
               ]}
             >
               {option.label}
@@ -372,8 +414,10 @@ export default function RegistrarProductoScreen() {
       >
         <TextInput
           placeholder="Stock inicial"
+          placeholderTextColor={colors.textMuted}
           style={[
             styles.input,
+            themedInputStyle,
             styles.halfInput,
             errores.stock && styles.inputError,
           ]}
@@ -387,8 +431,10 @@ export default function RegistrarProductoScreen() {
 
         <TextInput
           placeholder="Stock minimo"
+          placeholderTextColor={colors.textMuted}
           style={[
             styles.input,
+            themedInputStyle,
             styles.halfInput,
             errores.stockMinimo && styles.inputError,
           ]}
@@ -405,36 +451,48 @@ export default function RegistrarProductoScreen() {
         <Text style={styles.errorText}>{errores.stockMinimo}</Text>
       ) : null}
 
-      <View style={styles.calculationBox}>
-        <Text style={styles.calculationTitle}>Calculo de medida</Text>
-        <Text style={styles.calculationText}>
+      <View
+        style={[
+          styles.calculationBox,
+          { backgroundColor: colors.cardMuted, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.calculationTitle, { color: colors.text }]}>
+          Calculo de medida
+        </Text>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Unidad minima: {measurementType.baseLabel}
         </Text>
-        <Text style={styles.calculationText}>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           1 {presentation.label} ={" "}
           {formatBaseQuantity(cantidadPorPresentacion, measurementType.baseLabel)}
         </Text>
-        <Text style={styles.calculationText}>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Precio por {measurementType.baseLabel}: {formatCurrency(precioBase)}
         </Text>
-        <Text style={styles.calculationText}>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Stock guardado: {formatBaseQuantity(stockBase, measurementType.baseLabel)}
         </Text>
-        <Text style={styles.calculationText}>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Alerta bajo stock:{" "}
           {formatBaseQuantity(stockMinimoBase, measurementType.baseLabel)}
         </Text>
       </View>
 
-      <Text style={styles.label}>Fecha de vencimiento</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Fecha de vencimiento</Text>
       <TouchableOpacity
-        style={styles.dateButton}
+        style={[
+          styles.dateButton,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
         onPress={() => setMostrarCalendario(true)}
       >
         <Text
           style={[
             styles.dateText,
+            { color: colors.text },
             !fechaVencimiento && styles.datePlaceholder,
+            !fechaVencimiento && { color: colors.textMuted },
           ]}
         >
           {fechaVencimiento || "Seleccionar fecha"}
