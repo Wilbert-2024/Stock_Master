@@ -12,8 +12,10 @@ import {
 
 import { formatCurrency } from "../../constants/measurements";
 import { listarVentas } from "../../services/salesService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 export default function SalesHistoryScreen() {
+  const { colors } = useAppTheme();
   const [cargando, setCargando] = useState(true);
   const [ventas, setVentas] = useState([]);
 
@@ -46,10 +48,12 @@ export default function SalesHistoryScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Historial de ventas</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        Historial de ventas
+      </Text>
 
-      <View style={styles.summaryCard}>
+      <View style={[styles.summaryCard, { backgroundColor: colors.header }]}>
         <View>
           <Text style={styles.summaryLabel}>Total historico</Text>
           <Text style={styles.summaryTotal}>{formatCurrency(resumen.total)}</Text>
@@ -62,9 +66,11 @@ export default function SalesHistoryScreen() {
       </View>
 
       {cargando ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color="#003B95" />
-          <Text style={styles.loadingText}>Cargando ventas...</Text>
+        <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+            Cargando ventas...
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -72,37 +78,59 @@ export default function SalesHistoryScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <Ionicons name="receipt-outline" size={44} color="#94A3B8" />
-              <Text style={styles.emptyTitle}>No hay ventas registradas</Text>
-              <Text style={styles.emptyText}>
+            <View style={[styles.emptyBox, { backgroundColor: colors.card }]}>
+              <Ionicons
+                name="receipt-outline"
+                size={44}
+                color={colors.textMuted}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No hay ventas registradas
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                 Las ventas guardadas apareceran aqui.
               </Text>
             </View>
           }
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.card}
+              style={[styles.card, { backgroundColor: colors.card }]}
               onPress={() => router.push(`/ventas/${item.id}`)}
             >
-              <View style={styles.saleIcon}>
-                <Ionicons name="receipt-outline" size={24} color="#003B95" />
+              <View
+                style={[styles.saleIcon, { backgroundColor: colors.iconSoft }]}
+              >
+                <Ionicons
+                  name="receipt-outline"
+                  size={24}
+                  color={colors.primary}
+                />
               </View>
 
               <View style={styles.saleInfo}>
                 <View style={styles.saleHeader}>
-                  <Text style={styles.saleTitle}>Venta #{item.id}</Text>
+                  <Text style={[styles.saleTitle, { color: colors.text }]}>
+                    Venta #{item.id}
+                  </Text>
                   <PaymentBadge method={item.metodo_pago} />
                 </View>
-                <Text style={styles.saleDate}>{formatDateTime(item.fecha)}</Text>
-                <Text style={styles.saleMeta}>
+                <Text style={[styles.saleDate, { color: colors.textMuted }]}>
+                  {formatDateTime(item.fecha)}
+                </Text>
+                <Text style={[styles.saleMeta, { color: colors.primary }]}>
                   {item.cantidad_productos} unidades minimas
                 </Text>
               </View>
 
               <View style={styles.saleAmount}>
-                <Text style={styles.saleTotal}>{formatCurrency(item.total)}</Text>
-                <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+                <Text style={[styles.saleTotal, { color: colors.success }]}>
+                  {formatCurrency(item.total)}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.textMuted}
+                />
               </View>
             </TouchableOpacity>
           )}
@@ -113,8 +141,9 @@ export default function SalesHistoryScreen() {
 }
 
 function PaymentBadge({ method }) {
+  const { colors } = useAppTheme();
   const normalized = method || "efectivo";
-  const color = normalized === "efectivo" ? "#0F8A45" : "#003B95";
+  const color = normalized === "efectivo" ? colors.success : colors.primary;
 
   return (
     <View style={[styles.paymentBadge, { backgroundColor: `${color}1A` }]}>
