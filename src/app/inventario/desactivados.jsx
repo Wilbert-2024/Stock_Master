@@ -17,6 +17,7 @@ import {
   listarProductosDesactivados,
   restaurarProducto,
 } from "../../services/productService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 const MAX_DISABLED_PRODUCTS = 10;
 
@@ -33,6 +34,7 @@ const getCapacityColor = (total) => {
 };
 
 export default function DisabledProductsScreen() {
+  const { colors } = useAppTheme();
   const [cargando, setCargando] = useState(true);
   const [productos, setProductos] = useState([]);
 
@@ -110,17 +112,19 @@ export default function DisabledProductsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headerRow}>
         <View style={styles.headerTextBox}>
-          <Text style={styles.title}>Productos desactivados</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Productos desactivados
+          </Text>
           <Text style={[styles.subtitle, { color: capacidad.color }]}>
             {productos.length}/{MAX_DISABLED_PRODUCTS} almacenados
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.inventoryButton}
+          style={[styles.inventoryButton, { backgroundColor: colors.header }]}
           onPress={() => router.push("/inventario")}
         >
           <Ionicons name="cube-outline" size={18} color="#fff" />
@@ -128,20 +132,26 @@ export default function DisabledProductsScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.capacityCard, capacidad.lleno && styles.capacityFull]}>
+      <View
+        style={[
+          styles.capacityCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+          capacidad.lleno && styles.capacityFull,
+        ]}
+      >
         <View style={styles.capacityHeader}>
-          <View style={styles.capacityIcon}>
+          <View style={[styles.capacityIcon, { backgroundColor: colors.iconSoft }]}>
             <Ionicons
               name={capacidad.lleno ? "alert-circle-outline" : "archive-outline"}
               size={26}
-              color={capacidad.lleno ? "#DC2626" : "#003B95"}
+              color={capacidad.lleno ? "#DC2626" : colors.primary}
             />
           </View>
           <View style={styles.capacityCopy}>
-            <Text style={styles.capacityTitle}>
+            <Text style={[styles.capacityTitle, { color: colors.text }]}>
               {capacidad.lleno ? "Limite alcanzado" : "Espacio disponible"}
             </Text>
-            <Text style={styles.capacityText}>
+            <Text style={[styles.capacityText, { color: colors.textMuted }]}>
               {capacidad.lleno
                 ? "Borra definitivamente o reactiva un producto antes de desactivar otro."
                 : `Puedes almacenar ${capacidad.disponibles} producto(s) desactivado(s) mas.`}
@@ -149,7 +159,7 @@ export default function DisabledProductsScreen() {
           </View>
         </View>
 
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
           <View
             style={[
               styles.progressFill,
@@ -160,18 +170,24 @@ export default function DisabledProductsScreen() {
         </View>
       </View>
 
-      <View style={styles.infoCard}>
-        <Ionicons name="information-circle-outline" size={22} color="#003B95" />
-        <Text style={styles.infoText}>
+      <View style={[styles.infoCard, { backgroundColor: colors.iconSoft }]}>
+        <Ionicons
+          name="information-circle-outline"
+          size={22}
+          color={colors.primary}
+        />
+        <Text style={[styles.infoText, { color: colors.text }]}>
           Estos productos no aparecen en inventario ni ventas. Reactivalos para
           usarlos otra vez o borralos para liberar espacio.
         </Text>
       </View>
 
       {cargando ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color="#003B95" />
-          <Text style={styles.loadingText}>Cargando productos...</Text>
+        <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+            Cargando productos...
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -179,27 +195,47 @@ export default function DisabledProductsScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <Ionicons name="archive-outline" size={44} color="#94A3B8" />
-              <Text style={styles.emptyTitle}>No hay productos desactivados</Text>
-              <Text style={styles.emptyText}>
+            <View style={[styles.emptyBox, { backgroundColor: colors.card }]}>
+              <Ionicons
+                name="archive-outline"
+                size={44}
+                color={colors.textMuted}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No hay productos desactivados
+              </Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                 Cuando desactives un producto aparecera aqui.
               </Text>
             </View>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.card }]}>
               <View style={styles.cardHeader}>
-                <View style={styles.productIcon}>
-                  <Ionicons name="cube-outline" size={23} color="#003B95" />
+                <View
+                  style={[
+                    styles.productIcon,
+                    { backgroundColor: colors.iconSoft },
+                  ]}
+                >
+                  <Ionicons name="cube-outline" size={23} color={colors.primary} />
                 </View>
                 <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{item.nombre}</Text>
-                  <Text style={styles.categoryText}>{item.categoria_nombre}</Text>
+                  <Text style={[styles.productName, { color: colors.text }]}>
+                    {item.nombre}
+                  </Text>
+                  <Text style={[styles.categoryText, { color: colors.primary }]}>
+                    {item.categoria_nombre}
+                  </Text>
                 </View>
               </View>
 
-              <View style={styles.detailBox}>
+              <View
+                style={[
+                  styles.detailBox,
+                  { backgroundColor: colors.cardMuted },
+                ]}
+              >
                 <InfoRow
                   label="Precio"
                   value={`${formatCurrency(item.precio)} / ${item.presentacion_nombre}`}
@@ -212,11 +248,21 @@ export default function DisabledProductsScreen() {
 
               <View style={styles.actionsRow}>
                 <TouchableOpacity
-                  style={[styles.actionButton, styles.restoreButton]}
+                  style={[
+                    styles.actionButton,
+                    styles.restoreButton,
+                    { backgroundColor: colors.welcome },
+                  ]}
                   onPress={() => confirmarReactivar(item)}
                 >
-                  <Ionicons name="refresh-outline" size={18} color="#0F8A45" />
-                  <Text style={styles.restoreText}>Reactivar</Text>
+                  <Ionicons
+                    name="refresh-outline"
+                    size={18}
+                    color={colors.success}
+                  />
+                  <Text style={[styles.restoreText, { color: colors.success }]}>
+                    Reactivar
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -236,10 +282,12 @@ export default function DisabledProductsScreen() {
 }
 
 function InfoRow({ label, value }) {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={[styles.infoRow, { borderBottomColor: colors.border }]}>
+      <Text style={[styles.infoLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
