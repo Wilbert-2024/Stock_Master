@@ -11,8 +11,10 @@ import {
 } from "react-native";
 
 import { crearRespaldo, restaurarRespaldo } from "../../services/backupService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 export default function BackupScreen() {
+  const { colors } = useAppTheme();
   const [cargando, setCargando] = useState(false);
   const [ultimoResultado, setUltimoResultado] = useState(null);
 
@@ -84,16 +86,25 @@ export default function BackupScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Respaldo de datos</Text>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>Respaldo de datos</Text>
 
-      <View style={styles.infoCard}>
-        <View style={styles.infoIcon}>
-          <Ionicons name="cloud-offline-outline" size={28} color="#003B95" />
+      <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.infoIcon, { backgroundColor: colors.iconSoft }]}>
+          <Ionicons
+            name="cloud-offline-outline"
+            size={28}
+            color={colors.primary}
+          />
         </View>
         <View style={styles.infoContent}>
-          <Text style={styles.infoTitle}>Tus datos siguen en el telefono</Text>
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>
+            Tus datos siguen en el telefono
+          </Text>
+          <Text style={[styles.infoText, { color: colors.textMuted }]}>
             Crea un respaldo para guardar una copia de productos, categorias y
             ventas. Luego puedes restaurarlo si cambias de telefono o borras la
             app.
@@ -103,7 +114,12 @@ export default function BackupScreen() {
 
       <TouchableOpacity
         disabled={cargando}
-        style={[styles.actionButton, styles.primaryButton, cargando && styles.disabled]}
+        style={[
+          styles.actionButton,
+          styles.primaryButton,
+          { backgroundColor: colors.success },
+          cargando && styles.disabled,
+        ]}
         onPress={manejarCrearRespaldo}
       >
         <Ionicons name="download-outline" size={24} color="#fff" />
@@ -115,29 +131,41 @@ export default function BackupScreen() {
 
       <TouchableOpacity
         disabled={cargando}
-        style={[styles.actionButton, cargando && styles.disabled]}
+        style={[
+          styles.actionButton,
+          { backgroundColor: colors.card },
+          cargando && styles.disabled,
+        ]}
         onPress={confirmarRestauracion}
       >
-        <Ionicons name="cloud-upload-outline" size={24} color="#003B95" />
+        <Ionicons name="cloud-upload-outline" size={24} color={colors.primary} />
         <View style={styles.buttonTextBox}>
-          <Text style={styles.secondaryButtonText}>Restaurar respaldo</Text>
-          <Text style={styles.secondaryButtonSubtext}>
+          <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>
+            Restaurar respaldo
+          </Text>
+          <Text style={[styles.secondaryButtonSubtext, { color: colors.textMuted }]}>
             Seleccionar archivo guardado
           </Text>
         </View>
       </TouchableOpacity>
 
       {cargando && (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color="#003B95" />
-          <Text style={styles.loadingText}>Procesando datos...</Text>
+        <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+            Procesando datos...
+          </Text>
         </View>
       )}
 
       {ultimoResultado && (
-        <View style={styles.resultCard}>
-          <Text style={styles.resultTitle}>{ultimoResultado.titulo}</Text>
-          <Text style={styles.fileName}>{ultimoResultado.archivo}</Text>
+        <View style={[styles.resultCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.resultTitle, { color: colors.text }]}>
+            {ultimoResultado.titulo}
+          </Text>
+          <Text style={[styles.fileName, { color: colors.textMuted }]}>
+            {ultimoResultado.archivo}
+          </Text>
           <View style={styles.summaryGrid}>
             <SummaryItem label="Categorias" value={ultimoResultado.resumen.categorias} />
             <SummaryItem label="Productos" value={ultimoResultado.resumen.productos} />
@@ -150,9 +178,9 @@ export default function BackupScreen() {
         </View>
       )}
 
-      <View style={styles.warningCard}>
+      <View style={[styles.warningCard, { backgroundColor: colors.warningSoft }]}>
         <Ionicons name="warning-outline" size={22} color="#B45309" />
-        <Text style={styles.warningText}>
+        <Text style={[styles.warningText, { color: colors.text }]}>
           Al restaurar, la informacion actual se reemplaza por completo. Haz un
           respaldo nuevo antes de probar otro archivo.
         </Text>
@@ -162,10 +190,12 @@ export default function BackupScreen() {
 }
 
 function SummaryItem({ label, value }) {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.summaryItem}>
-      <Text style={styles.summaryValue}>{value}</Text>
-      <Text style={styles.summaryLabel}>{label}</Text>
+    <View style={[styles.summaryItem, { backgroundColor: colors.cardMuted }]}>
+      <Text style={[styles.summaryValue, { color: colors.primary }]}>{value}</Text>
+      <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>{label}</Text>
     </View>
   );
 }

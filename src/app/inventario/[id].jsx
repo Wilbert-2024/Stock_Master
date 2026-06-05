@@ -28,8 +28,10 @@ import {
   eliminarProducto,
   obtenerProducto,
 } from "../../services/productService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 export default function ProductDetailScreen() {
+  const { colors } = useAppTheme();
   const { id } = useLocalSearchParams();
   const scrollRef = useRef(null);
   const fieldPositions = useRef({});
@@ -71,6 +73,19 @@ export default function ProductDetailScreen() {
     Number.isInteger(stockMinimoNumber) && stockMinimoNumber >= 0
       ? stockMinimoNumber * cantidadPorPresentacion
       : 0;
+  const themedInputStyle = {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    color: colors.text,
+  };
+  const themedOptionStyle = {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+  };
+  const themedOptionActiveStyle = {
+    backgroundColor: colors.welcome,
+    borderColor: colors.success,
+  };
 
   const formatearFecha = (date) => {
     const year = date.getFullYear();
@@ -289,9 +304,16 @@ export default function ProductDetailScreen() {
 
   if (cargando) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator color="#003B95" />
-        <Text style={styles.loadingText}>Cargando producto...</Text>
+      <View
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <ActivityIndicator color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+          Cargando producto...
+        </Text>
       </View>
     );
   }
@@ -301,15 +323,26 @@ export default function ProductDetailScreen() {
   }
 
   return (
-    <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
+    <ScrollView
+      ref={scrollRef}
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
       {editando ? (
         <>
-          <Text style={styles.title}>Editar producto</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Editar producto
+          </Text>
 
           <TextInput
             onLayout={registrarPosicion("nombre")}
             placeholder="Nombre"
-            style={[styles.input, errores.nombre && styles.inputError]}
+            placeholderTextColor={colors.textMuted}
+            style={[
+              styles.input,
+              themedInputStyle,
+              errores.nombre && styles.inputError,
+            ]}
             value={form.nombre}
             onChangeText={(value) => actualizarCampo("nombre", value)}
           />
@@ -319,12 +352,13 @@ export default function ProductDetailScreen() {
 
           <TextInput
             placeholder="Codigo de barras (opcional)"
-            style={styles.input}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.input, themedInputStyle]}
             value={form.codigo_barras}
             onChangeText={(value) => actualizarCampo("codigo_barras", value)}
           />
 
-          <Text style={styles.label}>Categoria</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Categoria</Text>
           <View
             onLayout={registrarPosicion("categoria_id")}
             style={[
@@ -337,16 +371,23 @@ export default function ProductDetailScreen() {
                 key={categoria.id}
                 style={[
                   styles.optionButton,
+                  themedOptionStyle,
                   form.categoria_id === categoria.id &&
                     styles.optionButtonActive,
+                  form.categoria_id === categoria.id &&
+                    themedOptionActiveStyle,
                 ]}
                 onPress={() => actualizarCampo("categoria_id", categoria.id)}
               >
                 <Text
                   style={[
                     styles.optionText,
+                    { color: colors.text },
                     form.categoria_id === categoria.id &&
                       styles.optionTextActive,
+                    form.categoria_id === categoria.id && {
+                      color: colors.success,
+                    },
                   ]}
                 >
                   {categoria.nombre}
@@ -362,13 +403,20 @@ export default function ProductDetailScreen() {
             style={styles.manageCategoriesButton}
             onPress={() => router.push("/categorias")}
           >
-            <Text style={styles.manageCategoriesText}>Gestionar categorias</Text>
+            <Text style={[styles.manageCategoriesText, { color: colors.primary }]}>
+              Gestionar categorias
+            </Text>
           </TouchableOpacity>
 
           <TextInput
             onLayout={registrarPosicion("precio")}
             placeholder="Precio de la presentacion"
-            style={[styles.input, errores.precio && styles.inputError]}
+            placeholderTextColor={colors.textMuted}
+            style={[
+              styles.input,
+              themedInputStyle,
+              errores.precio && styles.inputError,
+            ]}
             keyboardType="numeric"
             value={form.precio}
             onChangeText={(value) => actualizarCampo("precio", value)}
@@ -377,20 +425,28 @@ export default function ProductDetailScreen() {
             <Text style={styles.errorText}>{errores.precio}</Text>
           ) : null}
 
-          <Text style={styles.label}>Tipo de medida</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Tipo de medida
+          </Text>
           <View style={styles.segmentGroup}>
             {MEASUREMENT_TYPES.map((type) => (
               <TouchableOpacity
                 key={type.id}
                 style={[
                   styles.segmentButton,
+                  { backgroundColor: colors.card, borderColor: colors.border },
                   form.tipo_medida === type.id && styles.segmentButtonActive,
+                  form.tipo_medida === type.id && {
+                    backgroundColor: colors.primaryDark,
+                    borderColor: colors.primaryDark,
+                  },
                 ]}
                 onPress={() => seleccionarTipoMedida(type.id)}
               >
                 <Text
                   style={[
                     styles.segmentText,
+                    { color: colors.text },
                     form.tipo_medida === type.id && styles.segmentTextActive,
                   ]}
                 >
@@ -400,25 +456,36 @@ export default function ProductDetailScreen() {
             ))}
           </View>
 
-          <Text style={styles.helperText}>{measurementType.description}</Text>
+          <Text style={[styles.helperText, { color: colors.textMuted }]}>
+            {measurementType.description}
+          </Text>
 
-          <Text style={styles.label}>Presentacion</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Presentacion
+          </Text>
           <View style={styles.optionGrid}>
             {presentationOptions.map((option) => (
               <TouchableOpacity
                 key={option.id}
                 style={[
                   styles.optionButton,
+                  themedOptionStyle,
                   form.presentacion_id === option.id &&
                     styles.optionButtonActive,
+                  form.presentacion_id === option.id &&
+                    themedOptionActiveStyle,
                 ]}
                 onPress={() => actualizarCampo("presentacion_id", option.id)}
               >
                 <Text
                   style={[
                     styles.optionText,
+                    { color: colors.text },
                     form.presentacion_id === option.id &&
                       styles.optionTextActive,
+                    form.presentacion_id === option.id && {
+                      color: colors.success,
+                    },
                   ]}
                 >
                   {option.label}
@@ -438,8 +505,10 @@ export default function ProductDetailScreen() {
           >
             <TextInput
               placeholder="Stock"
+              placeholderTextColor={colors.textMuted}
               style={[
                 styles.input,
+                themedInputStyle,
                 styles.halfInput,
                 errores.stock_presentaciones && styles.inputError,
               ]}
@@ -452,8 +521,10 @@ export default function ProductDetailScreen() {
 
             <TextInput
               placeholder="Stock minimo"
+              placeholderTextColor={colors.textMuted}
               style={[
                 styles.input,
+                themedInputStyle,
                 styles.halfInput,
                 errores.stock_minimo_presentaciones && styles.inputError,
               ]}
@@ -473,41 +544,55 @@ export default function ProductDetailScreen() {
             </Text>
           ) : null}
 
-          <View style={styles.calculationBox}>
-            <Text style={styles.calculationTitle}>Calculo de medida</Text>
-            <Text style={styles.calculationText}>
+          <View
+            style={[
+              styles.calculationBox,
+              { backgroundColor: colors.cardMuted, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.calculationTitle, { color: colors.text }]}>
+              Calculo de medida
+            </Text>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Unidad minima: {measurementType.baseLabel}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               1 {presentation.label} ={" "}
               {formatBaseQuantity(
                 cantidadPorPresentacion,
                 measurementType.baseLabel,
               )}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Precio por {measurementType.baseLabel}:{" "}
               {formatCurrency(precioBase)}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Stock guardado:{" "}
               {formatBaseQuantity(stockBase, measurementType.baseLabel)}
             </Text>
-            <Text style={styles.calculationText}>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Alerta bajo stock:{" "}
               {formatBaseQuantity(stockMinimoBase, measurementType.baseLabel)}
             </Text>
           </View>
 
-          <Text style={styles.label}>Fecha de vencimiento</Text>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Fecha de vencimiento
+          </Text>
           <TouchableOpacity
-            style={styles.dateButton}
+            style={[
+              styles.dateButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             onPress={() => setMostrarCalendario(true)}
           >
             <Text
               style={[
                 styles.dateText,
+                { color: colors.text },
                 !form.fecha_vencimiento && styles.datePlaceholder,
+                !form.fecha_vencimiento && { color: colors.textMuted },
               ]}
             >
               {form.fecha_vencimiento || "Seleccionar fecha"}
@@ -549,12 +634,16 @@ export default function ProductDetailScreen() {
         </>
       ) : (
         <>
-          <View style={styles.headerCard}>
-            <Text style={styles.title}>{producto.nombre}</Text>
-            <Text style={styles.categoryText}>{producto.categoria_nombre}</Text>
+          <View style={[styles.headerCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {producto.nombre}
+            </Text>
+            <Text style={[styles.categoryText, { color: colors.primary }]}>
+              {producto.categoria_nombre}
+            </Text>
           </View>
 
-          <View style={styles.detailCard}>
+          <View style={[styles.detailCard, { backgroundColor: colors.card }]}>
             <DetailRow
               label="Codigo de barras"
               value={producto.codigo_barras || "Sin codigo"}
@@ -603,10 +692,14 @@ export default function ProductDetailScreen() {
 }
 
 function DetailRow({ label, value }) {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+    <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
+      <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+        {label}
+      </Text>
+      <Text style={[styles.detailValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
