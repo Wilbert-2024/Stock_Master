@@ -13,6 +13,7 @@ import {
   PRESENTATION_OPTIONS,
   formatCurrency,
 } from "../../constants/measurements";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 const DETAILS = {
   peso: {
@@ -51,6 +52,7 @@ const DETAILS = {
 };
 
 export default function UnitsScreen() {
+  const { colors } = useAppTheme();
   const [tipoSeleccionado, setTipoSeleccionado] = useState("unidad");
   const tipo = useMemo(
     () =>
@@ -63,8 +65,13 @@ export default function UnitsScreen() {
   const precioBase = detalle.sample.price / detalle.sample.baseUnits;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Unidades de medida</Text>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
+        Unidades de medida
+      </Text>
 
       <View style={styles.segmented}>
         {MEASUREMENT_TYPES.map((item) => {
@@ -74,7 +81,15 @@ export default function UnitsScreen() {
           return (
             <TouchableOpacity
               key={item.id}
-              style={[styles.segment, active && styles.segmentActive]}
+              style={[
+                styles.segment,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                active && styles.segmentActive,
+                active && {
+                  backgroundColor: colors.primaryDark,
+                  borderColor: colors.primaryDark,
+                },
+              ]}
               onPress={() => setTipoSeleccionado(item.id)}
             >
               <Ionicons
@@ -82,7 +97,13 @@ export default function UnitsScreen() {
                 size={20}
                 color={active ? "#fff" : itemDetail.color}
               />
-              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  { color: colors.text },
+                  active && styles.segmentTextActive,
+                ]}
+              >
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -90,55 +111,80 @@ export default function UnitsScreen() {
         })}
       </View>
 
-      <View style={styles.headerCard}>
+      <View style={[styles.headerCard, { backgroundColor: colors.card }]}>
         <View style={[styles.iconBox, { backgroundColor: `${detalle.color}1A` }]}>
           <Ionicons name={detalle.icon} size={30} color={detalle.color} />
         </View>
         <View style={styles.headerContent}>
-          <Text style={styles.typeTitle}>{tipo.label}</Text>
-          <Text style={styles.typeDescription}>{tipo.description}</Text>
-          <Text style={styles.examples}>{detalle.examples}</Text>
+          <Text style={[styles.typeTitle, { color: colors.text }]}>
+            {tipo.label}
+          </Text>
+          <Text style={[styles.typeDescription, { color: colors.textMuted }]}>
+            {tipo.description}
+          </Text>
+          <Text style={[styles.examples, { color: colors.text }]}>
+            {detalle.examples}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.baseBand}>
+      <View style={[styles.baseBand, { backgroundColor: colors.header }]}>
         <Text style={styles.baseLabel}>Unidad minima de venta</Text>
         <Text style={styles.baseValue}>{tipo.baseLabel}</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>Presentaciones permitidas</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Presentaciones permitidas
+      </Text>
       {presentaciones.map((presentation) => (
-        <View key={presentation.id} style={styles.presentationCard}>
+        <View
+          key={presentation.id}
+          style={[styles.presentationCard, { backgroundColor: colors.card }]}
+        >
           <View style={styles.presentationLeft}>
-            <Text style={styles.presentationTitle}>{presentation.label}</Text>
-            <Text style={styles.presentationMeta}>
+            <Text style={[styles.presentationTitle, { color: colors.text }]}>
+              {presentation.label}
+            </Text>
+            <Text style={[styles.presentationMeta, { color: colors.textMuted }]}>
               Equivale a {presentation.baseUnits} x {tipo.baseLabel}
             </Text>
           </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>x{presentation.baseUnits}</Text>
+          <View style={[styles.badge, { backgroundColor: colors.iconSoft }]}>
+            <Text style={[styles.badgeText, { color: colors.primary }]}>
+              x{presentation.baseUnits}
+            </Text>
           </View>
         </View>
       ))}
 
-      <Text style={styles.sectionTitle}>Ejemplo de precio</Text>
-      <View style={styles.exampleCard}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        Ejemplo de precio
+      </Text>
+      <View style={[styles.exampleCard, { backgroundColor: colors.card }]}>
         <View style={styles.exampleRow}>
-          <Text style={styles.exampleLabel}>Presentacion</Text>
-          <Text style={styles.exampleValue}>{detalle.sample.presentation}</Text>
+          <Text style={[styles.exampleLabel, { color: colors.textMuted }]}>
+            Presentacion
+          </Text>
+          <Text style={[styles.exampleValue, { color: colors.text }]}>
+            {detalle.sample.presentation}
+          </Text>
         </View>
         <View style={styles.exampleRow}>
-          <Text style={styles.exampleLabel}>Precio registrado</Text>
-          <Text style={styles.exampleValue}>
+          <Text style={[styles.exampleLabel, { color: colors.textMuted }]}>
+            Precio registrado
+          </Text>
+          <Text style={[styles.exampleValue, { color: colors.text }]}>
             {formatCurrency(detalle.sample.price)}
           </Text>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
         <View style={styles.exampleRow}>
-          <Text style={styles.exampleResultLabel}>
+          <Text style={[styles.exampleResultLabel, { color: colors.text }]}>
             Precio por {detalle.sample.base}
           </Text>
-          <Text style={styles.exampleResult}>{formatCurrency(precioBase)}</Text>
+          <Text style={[styles.exampleResult, { color: colors.success }]}>
+            {formatCurrency(precioBase)}
+          </Text>
         </View>
       </View>
     </ScrollView>
