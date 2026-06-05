@@ -37,6 +37,10 @@ const BARCODE_TYPES = [
   "upc_e",
 ];
 
+const tienePresentacionAdicional = (producto) =>
+  Number(producto?.cantidad_por_presentacion ?? 1) > 1 &&
+  producto?.presentacion_nombre !== producto?.unidad_base;
+
 export default function NewSaleScreen() {
   const { colors } = useAppTheme();
   const [carrito, setCarrito] = useState([]);
@@ -270,7 +274,7 @@ export default function NewSaleScreen() {
         return;
       }
 
-      Alert.alert("Producto encontrado", producto.nombre, [
+      const accionesProducto = [
         {
           text: `Agregar ${producto.unidad_base}`,
           onPress: () => {
@@ -279,18 +283,23 @@ export default function NewSaleScreen() {
           },
         },
         {
+          style: "cancel",
+          text: "Escanear otra vez",
+          onPress: () => setEscaneoBloqueado(false),
+        },
+      ];
+
+      if (tienePresentacionAdicional(producto)) {
+        accionesProducto.splice(1, 0, {
           text: `Agregar ${producto.presentacion_nombre}`,
           onPress: () => {
             agregarProducto(producto, "presentacion");
             setEscaneando(false);
           },
-        },
-        {
-          style: "cancel",
-          text: "Escanear otra vez",
-          onPress: () => setEscaneoBloqueado(false),
-        },
-      ]);
+        });
+      }
+
+      Alert.alert("Producto encontrado", producto.nombre, accionesProducto);
     } catch (error) {
       Alert.alert("Error", error.message, [
         { text: "Intentar de nuevo", onPress: () => setEscaneoBloqueado(false) },
@@ -433,55 +442,63 @@ export default function NewSaleScreen() {
           </Text>
         </View>
       ) : (
-        productos.map((producto) => (
-          <View
-            key={producto.id}
-            style={[styles.productCard, { backgroundColor: colors.card }]}
-          >
-            <View style={styles.productHeader}>
-              <View style={styles.productInfo}>
-                <Text style={[styles.productName, { color: colors.text }]}>
-                  {producto.nombre}
-                </Text>
+        productos.map((producto) => {
+          const mostrarPresentacion = tienePresentacionAdicional(producto);
+
+          return (
+            <View
+              key={producto.id}
+              style={[styles.productCard, { backgroundColor: colors.card }]}
+            >
+              <View style={styles.productHeader}>
+                <View style={styles.productInfo}>
+                  <Text style={[styles.productName, { color: colors.text }]}>
+                    {producto.nombre}
+                  </Text>
+                  <Text style={[styles.productMeta, { color: colors.textMuted }]}>
+                    Stock: {producto.stock} x {producto.unidad_base}
+                  </Text>
+                </View>
+                <View style={[styles.stockPill, { backgroundColor: colors.iconSoft }]}>
+                  <Text style={[styles.stockPillText, { color: colors.primary }]}>
+                    {producto.categoria_nombre}
+                  </Text>
+                </View>
+              </View>
+
+              {mostrarPresentacion ? (
                 <Text style={[styles.productMeta, { color: colors.textMuted }]}>
-                  Stock: {producto.stock} x {producto.unidad_base}
+                  {formatCurrency(producto.precio)} / {producto.presentacion_nombre}
                 </Text>
-              </View>
-              <View style={[styles.stockPill, { backgroundColor: colors.iconSoft }]}>
-                <Text style={[styles.stockPillText, { color: colors.primary }]}>
-                  {producto.categoria_nombre}
-                </Text>
+              ) : null}
+              <Text style={[styles.productMeta, { color: colors.textMuted }]}>
+                {formatCurrency(producto.precio_base)} / {producto.unidad_base}
+              </Text>
+
+              <View style={styles.productActions}>
+                <TouchableOpacity
+                  style={[styles.addButton, { backgroundColor: colors.welcome }]}
+                  onPress={() => agregarProducto(producto, "minima")}
+                >
+                  <Text style={[styles.addButtonText, { color: colors.success }]}>
+                    + {producto.unidad_base}
+                  </Text>
+                </TouchableOpacity>
+
+                {mostrarPresentacion ? (
+                  <TouchableOpacity
+                    style={[styles.addButton, { backgroundColor: colors.welcome }]}
+                    onPress={() => agregarProducto(producto, "presentacion")}
+                  >
+                    <Text style={[styles.addButtonText, { color: colors.success }]}>
+                      + {producto.presentacion_nombre}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
-
-            <Text style={[styles.productMeta, { color: colors.textMuted }]}>
-              {formatCurrency(producto.precio)} / {producto.presentacion_nombre}
-            </Text>
-            <Text style={[styles.productMeta, { color: colors.textMuted }]}>
-              {formatCurrency(producto.precio_base)} / {producto.unidad_base}
-            </Text>
-
-            <View style={styles.productActions}>
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: colors.welcome }]}
-                onPress={() => agregarProducto(producto, "minima")}
-              >
-                <Text style={[styles.addButtonText, { color: colors.success }]}>
-                  + {producto.unidad_base}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: colors.welcome }]}
-                onPress={() => agregarProducto(producto, "presentacion")}
-              >
-                <Text style={[styles.addButtonText, { color: colors.success }]}>
-                  + {producto.presentacion_nombre}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))
+          );
+        })
       )}
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Carrito</Text>
