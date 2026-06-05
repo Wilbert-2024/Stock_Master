@@ -19,6 +19,7 @@ import {
   listarProductos,
 } from "../../services/productService";
 import { crearVenta } from "../../services/salesService";
+import { useAppTheme } from "../../theme/AppThemeProvider";
 
 const BARCODE_TYPES = [
   "aztec",
@@ -37,6 +38,7 @@ const BARCODE_TYPES = [
 ];
 
 export default function NewSaleScreen() {
+  const { colors } = useAppTheme();
   const [carrito, setCarrito] = useState([]);
   const [escaneando, setEscaneando] = useState(false);
   const [escaneoBloqueado, setEscaneoBloqueado] = useState(false);
@@ -75,6 +77,11 @@ export default function NewSaleScreen() {
         item.cantidad_base > 0 &&
         item.subtotal > 0,
     );
+  const inputTheme = {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    color: colors.text,
+  };
 
   const cantidadEnCarrito = (productoId, current = carrito, exceptKey = null) =>
     current
@@ -396,10 +403,16 @@ export default function NewSaleScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Nueva venta</Text>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={styles.container}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>Nueva venta</Text>
 
-      <TouchableOpacity style={styles.scanActionButton} onPress={abrirEscaner}>
+      <TouchableOpacity
+        style={[styles.scanActionButton, { backgroundColor: colors.header }]}
+        onPress={abrirEscaner}
+      >
         <Ionicons name="barcode-outline" size={24} color="#fff" />
         <View style={styles.scanActionTextBox}>
           <Text style={styles.scanActionTitle}>Escanear producto</Text>
@@ -409,49 +422,60 @@ export default function NewSaleScreen() {
         </View>
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Productos</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Productos</Text>
       {productos.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyTitle}>No hay productos disponibles</Text>
-          <Text style={styles.emptyText}>
+        <View style={[styles.emptyBox, { backgroundColor: colors.card }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            No hay productos disponibles
+          </Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
             Registra productos con stock para poder vender.
           </Text>
         </View>
       ) : (
         productos.map((producto) => (
-          <View key={producto.id} style={styles.productCard}>
+          <View
+            key={producto.id}
+            style={[styles.productCard, { backgroundColor: colors.card }]}
+          >
             <View style={styles.productHeader}>
               <View style={styles.productInfo}>
-                <Text style={styles.productName}>{producto.nombre}</Text>
-                <Text style={styles.productMeta}>
+                <Text style={[styles.productName, { color: colors.text }]}>
+                  {producto.nombre}
+                </Text>
+                <Text style={[styles.productMeta, { color: colors.textMuted }]}>
                   Stock: {producto.stock} x {producto.unidad_base}
                 </Text>
               </View>
-              <View style={styles.stockPill}>
-                <Text style={styles.stockPillText}>{producto.categoria_nombre}</Text>
+              <View style={[styles.stockPill, { backgroundColor: colors.iconSoft }]}>
+                <Text style={[styles.stockPillText, { color: colors.primary }]}>
+                  {producto.categoria_nombre}
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.productMeta}>
+            <Text style={[styles.productMeta, { color: colors.textMuted }]}>
               {formatCurrency(producto.precio)} / {producto.presentacion_nombre}
             </Text>
-            <Text style={styles.productMeta}>
+            <Text style={[styles.productMeta, { color: colors.textMuted }]}>
               {formatCurrency(producto.precio_base)} / {producto.unidad_base}
             </Text>
 
             <View style={styles.productActions}>
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, { backgroundColor: colors.welcome }]}
                 onPress={() => agregarProducto(producto, "minima")}
               >
-                <Text style={styles.addButtonText}>+ {producto.unidad_base}</Text>
+                <Text style={[styles.addButtonText, { color: colors.success }]}>
+                  + {producto.unidad_base}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, { backgroundColor: colors.welcome }]}
                 onPress={() => agregarProducto(producto, "presentacion")}
               >
-                <Text style={styles.addButtonText}>
+                <Text style={[styles.addButtonText, { color: colors.success }]}>
                   + {producto.presentacion_nombre}
                 </Text>
               </TouchableOpacity>
@@ -460,22 +484,31 @@ export default function NewSaleScreen() {
         ))
       )}
 
-      <Text style={styles.sectionTitle}>Carrito</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Carrito</Text>
       {carrito.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyTitle}>Carrito vacio</Text>
-          <Text style={styles.emptyText}>Agrega productos para cobrar.</Text>
+        <View style={[styles.emptyBox, { backgroundColor: colors.card }]}>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            Carrito vacio
+          </Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            Agrega productos para cobrar.
+          </Text>
         </View>
       ) : (
         carrito.map((item) => (
-          <View key={item.key} style={styles.cartItem}>
+          <View
+            key={item.key}
+            style={[styles.cartItem, { backgroundColor: colors.card }]}
+          >
             <View style={styles.cartHeader}>
               <View style={styles.cartInfo}>
-                <Text style={styles.cartName}>{item.producto_nombre}</Text>
-                <Text style={styles.cartMeta}>
+                <Text style={[styles.cartName, { color: colors.text }]}>
+                  {item.producto_nombre}
+                </Text>
+                <Text style={[styles.cartMeta, { color: colors.textMuted }]}>
                   {item.presentacion_nombre} - {formatCurrency(item.precio_unitario)}
                 </Text>
-                <Text style={styles.cartMeta}>
+                <Text style={[styles.cartMeta, { color: colors.textMuted }]}>
                   Equivale a {item.cantidad_base} x {item.unidad_base}
                 </Text>
                 <Text style={styles.stockRemaining}>
@@ -484,7 +517,10 @@ export default function NewSaleScreen() {
               </View>
 
               <TouchableOpacity
-                style={styles.deleteItemButton}
+                style={[
+                  styles.deleteItemButton,
+                  { backgroundColor: "rgba(220, 38, 38, 0.14)" },
+                ]}
                 onPress={() => eliminarProductoCarrito(item.key)}
               >
                 <Ionicons name="trash-outline" size={20} color="#DC2626" />
@@ -493,21 +529,29 @@ export default function NewSaleScreen() {
 
             <View style={styles.quantityRow}>
               <TouchableOpacity
-                style={styles.quantityButton}
+                style={[styles.quantityButton, { backgroundColor: colors.iconSoft }]}
                 onPress={() => quitarProducto(item.key)}
               >
-                <Ionicons name="remove" size={22} color="#003B95" />
+                <Ionicons name="remove" size={22} color={colors.primary} />
               </TouchableOpacity>
 
               <TextInput
                 keyboardType="number-pad"
                 onChangeText={(value) => actualizarCantidadCarrito(item.key, value)}
-                style={styles.quantityInput}
+                placeholderTextColor={colors.textMuted}
+                style={[
+                  styles.quantityInput,
+                  {
+                    backgroundColor: colors.cardMuted,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 value={item.cantidad_texto}
               />
 
               <TouchableOpacity
-                style={styles.quantityButton}
+                style={[styles.quantityButton, { backgroundColor: colors.iconSoft }]}
                 onPress={() =>
                   actualizarCantidadCarrito(
                     item.key,
@@ -515,12 +559,14 @@ export default function NewSaleScreen() {
                   )
                 }
               >
-                <Ionicons name="add" size={22} color="#003B95" />
+                <Ionicons name="add" size={22} color={colors.primary} />
               </TouchableOpacity>
 
               <View style={styles.cartAmount}>
-                <Text style={styles.cartSubtotal}>{formatCurrency(item.subtotal)}</Text>
-                <Text style={styles.cartUnitCount}>
+                <Text style={[styles.cartSubtotal, { color: colors.text }]}>
+                  {formatCurrency(item.subtotal)}
+                </Text>
+                <Text style={[styles.cartUnitCount, { color: colors.textMuted }]}>
                   {item.cantidad_presentaciones || 0} x {item.presentacion_nombre}
                 </Text>
               </View>
@@ -529,25 +575,31 @@ export default function NewSaleScreen() {
         ))
       )}
 
-      <View style={styles.totalBox}>
+      <View style={[styles.totalBox, { backgroundColor: colors.header }]}>
         <Text style={styles.totalLabel}>Total</Text>
         <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>Cobro</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Cobro</Text>
       <View style={styles.paymentRow}>
         {["efectivo", "tarjeta", "otro"].map((method) => (
           <TouchableOpacity
             key={method}
             style={[
               styles.paymentButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
               metodoPago === method && styles.paymentButtonActive,
+              metodoPago === method && {
+                backgroundColor: colors.primaryDark,
+                borderColor: colors.primaryDark,
+              },
             ]}
             onPress={() => setMetodoPago(method)}
           >
             <Text
               style={[
                 styles.paymentText,
+                { color: colors.text },
                 metodoPago === method && styles.paymentTextActive,
               ]}
             >
@@ -563,12 +615,17 @@ export default function NewSaleScreen() {
             keyboardType="numeric"
             onChangeText={setRecibido}
             placeholder="Monto recibido"
-            style={styles.input}
+            placeholderTextColor={colors.textMuted}
+            style={[styles.input, inputTheme]}
             value={recibido}
           />
-          <View style={styles.changeBox}>
-            <Text style={styles.changeLabel}>Cambio</Text>
-            <Text style={styles.changeText}>{formatCurrency(cambio)}</Text>
+          <View style={[styles.changeBox, { backgroundColor: colors.welcome }]}>
+            <Text style={[styles.changeLabel, { color: colors.success }]}>
+              Cambio
+            </Text>
+            <Text style={[styles.changeText, { color: colors.success }]}>
+              {formatCurrency(cambio)}
+            </Text>
           </View>
         </>
       ) : null}
