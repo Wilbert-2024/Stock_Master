@@ -87,6 +87,12 @@ const formatWeeklyRange = ({ fechaFin, fechaInicio }) => {
   return `${formatDisplayDate(fechaInicio)} - ${formatDisplayDate(fechaFin)}`;
 };
 
+const formatMonthLabel = ({ fechaInicio }) => {
+  const date = parseLocalDate(fechaInicio);
+
+  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+};
+
 const formatReportCurrency = (value) =>
   `C$ ${Number.isFinite(value) ? value.toLocaleString("en-US", {
     maximumFractionDigits: 2,
@@ -234,6 +240,72 @@ const obtenerDiasVentas = (ventas = []) => {
   };
 };
 
+const obtenerFechasVentas = (ventas = []) => {
+  const ventasPorFecha = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const current = acc[dateKey] ?? { cantidad: 0, monto: 0 };
+
+    acc[dateKey] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const fechasConVentas = Object.entries(ventasPorFecha).map(([dateKey, data]) => ({
+    dateKey,
+    ...data,
+  }));
+
+  if (!fechasConVentas.length) {
+    return {
+      menosVentas: "Sin ventas",
+      masVentas: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.dateKey.localeCompare(b.dateKey);
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.dateKey.localeCompare(b.dateKey);
+  };
+
+  const formatDateWithDay = (dateKey) => {
+    const date = parseLocalDate(dateKey);
+
+    return `${WEEKDAY_NAMES[date.getDay()]} ${formatDisplayDate(dateKey)}`;
+  };
+
+  return {
+    menosVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMenor)[0].dateKey),
+    masVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMayor)[0].dateKey),
+  };
+};
+
 const crearResumenDiarioHtml = ({ rango, reporte }) => {
   const productoMasVendido =
     obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
@@ -339,10 +411,67 @@ const crearResumenSemanalHtml = ({ rango, reporte }) => {
   `;
 };
 
+const crearResumenMensualHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+  const fechasVentas = obtenerFechasVentas(reporte.ventas);
+
+  return `
+    <section class="period-report">
+      <div class="period-title">REPORTE DE VENTAS MENSUAL</div>
+      <div class="period-row period-date">
+        <span>Mes:</span>
+        <strong>${escapeHtml(formatMonthLabel(rango))}</strong>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="period-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Dia con Mas Ventas</span>
+          <strong>${escapeHtml(fechasVentas.masVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Dia con Menos Ventas</span>
+          <strong>${escapeHtml(fechasVentas.menosVentas)}</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
 const crearHtmlReporte = ({ periodo, rango, reporte }) => {
   const logoUri = Image.resolveAssetSource(LOGO_IMAGE)?.uri;
   const esReporteDiario = rango.fechaInicio === rango.fechaFin;
   const esReporteSemanal = periodo === "Semana";
+  const esReporteMensual = periodo === "Mes";
   const productosRows = buildRows(
     reporte.productos,
     (producto, index) => `
@@ -594,6 +723,7 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
 
         ${esReporteDiario ? crearResumenDiarioHtml({ rango, reporte }) : ""}
         ${esReporteSemanal ? crearResumenSemanalHtml({ rango, reporte }) : ""}
+        ${esReporteMensual ? crearResumenMensualHtml({ rango, reporte }) : ""}
 
         <section class="summary">
           <div class="summary-card">
