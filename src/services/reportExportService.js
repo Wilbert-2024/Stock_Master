@@ -31,6 +31,26 @@ const formatFileDate = (date = new Date()) =>
 
 const getReportFileName = () => `Reporte_StockMaster_${formatFileDate()}.pdf`;
 
+const formatDisplayDate = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const [year, month, day] = String(value).split("-");
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
+const formatReportCurrency = (value) =>
+  `C$ ${Number.isFinite(value) ? value.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  }) : "0.00"}`;
+
 const buildRows = (items, renderRow, emptyText, columns) => {
   if (!items.length) {
     return `<tr><td colspan="${columns}" class="empty">${escapeHtml(emptyText)}</td></tr>`;
@@ -88,8 +108,79 @@ const crearDetalleVentaHtml = (detalle = []) => {
   `;
 };
 
+const obtenerProductoMasVendido = (productos = []) => productos[0]?.producto_nombre;
+
+const obtenerProductoMenosVendido = (productos = []) => {
+  if (!productos.length) {
+    return null;
+  }
+
+  return [...productos].sort((a, b) => {
+    const cantidadA = Number(a.cantidad_base ?? 0);
+    const cantidadB = Number(b.cantidad_base ?? 0);
+    const totalA = Number(a.total_vendido ?? 0);
+    const totalB = Number(b.total_vendido ?? 0);
+
+    if (cantidadA !== cantidadB) {
+      return cantidadA - cantidadB;
+    }
+
+    return totalA - totalB;
+  })[0]?.producto_nombre;
+};
+
+const crearResumenDiarioHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+
+  return `
+    <section class="daily-report">
+      <div class="daily-title">REPORTE DE VENTAS DIARIO</div>
+      <div class="daily-row daily-date">
+        <span>Fecha:</span>
+        <strong>${escapeHtml(formatDisplayDate(rango.fechaInicio))}</strong>
+      </div>
+      <div class="daily-grid">
+        <div class="daily-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="daily-grid">
+        <div class="daily-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+      <div class="daily-row">
+        <span>Cliente Frecuente</span>
+        <strong>Consumidor General</strong>
+      </div>
+    </section>
+  `;
+};
+
 const crearHtmlReporte = ({ periodo, rango, reporte }) => {
   const logoUri = Image.resolveAssetSource(LOGO_IMAGE)?.uri;
+  const esReporteDiario = rango.fechaInicio === rango.fechaFin;
   const productosRows = buildRows(
     reporte.productos,
     (producto, index) => `
@@ -184,6 +275,48 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
             margin: 18px 0;
             table-layout: fixed;
             width: 100%;
+          }
+          .daily-report {
+            border: 2px solid #003B95;
+            border-radius: 14px;
+            margin: 18px 0;
+            overflow: hidden;
+          }
+          .daily-title {
+            background: #003B95;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 0.4px;
+            padding: 14px;
+            text-align: center;
+          }
+          .daily-grid {
+            border-top: 1px solid #bfdbfe;
+          }
+          .daily-row {
+            align-items: center;
+            border-top: 1px solid #dbeafe;
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            padding: 11px 14px;
+          }
+          .daily-title + .daily-row,
+          .daily-grid .daily-row:first-child {
+            border-top: 0;
+          }
+          .daily-date {
+            background: #f8fafc;
+          }
+          .daily-row span {
+            color: #334155;
+            font-weight: 800;
+          }
+          .daily-row strong {
+            color: #0f172a;
+            font-weight: 900;
+            text-align: right;
           }
           .summary-card {
             background: #f8fafc;
@@ -287,6 +420,8 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
             <div class="meta">Generado: ${escapeHtml(formatDateTime())}</div>
           </div>
         </section>
+
+        ${esReporteDiario ? crearResumenDiarioHtml({ rango, reporte }) : ""}
 
         <section class="summary">
           <div class="summary-card">
