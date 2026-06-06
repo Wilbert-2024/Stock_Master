@@ -306,6 +306,72 @@ const obtenerFechasVentas = (ventas = []) => {
   };
 };
 
+const obtenerSemanasVentas = (ventas = []) => {
+  const ventasPorSemana = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const date = parseLocalDate(dateKey);
+    const weekNumber = Math.ceil(date.getDate() / 7);
+    const current = acc[weekNumber] ?? { cantidad: 0, monto: 0 };
+
+    acc[weekNumber] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const semanasConVentas = Object.entries(ventasPorSemana).map(
+    ([weekNumber, data]) => ({
+      weekNumber: Number(weekNumber),
+      ...data,
+    }),
+  );
+
+  if (!semanasConVentas.length) {
+    return {
+      mejorSemana: "Sin ventas",
+      peorSemana: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.weekNumber - b.weekNumber;
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.weekNumber - b.weekNumber;
+  };
+
+  const formatWeek = (weekNumber) => `Semana #${weekNumber}`;
+
+  return {
+    mejorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMayor)[0].weekNumber),
+    peorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMenor)[0].weekNumber),
+  };
+};
+
 const crearResumenDiarioHtml = ({ rango, reporte }) => {
   const productoMasVendido =
     obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
@@ -416,7 +482,7 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
     obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
   const productoMenosVendido =
     obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
-  const fechasVentas = obtenerFechasVentas(reporte.ventas);
+  const semanasVentas = obtenerSemanasVentas(reporte.ventas);
 
   return `
     <section class="period-report">
@@ -445,12 +511,12 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Dia con Mas Ventas</span>
-          <strong>${escapeHtml(fechasVentas.masVentas)}</strong>
+          <span>Mejor Semana</span>
+          <strong>${escapeHtml(semanasVentas.mejorSemana)}</strong>
         </div>
         <div class="period-row">
-          <span>Dia con Menos Ventas</span>
-          <strong>${escapeHtml(fechasVentas.menosVentas)}</strong>
+          <span>Peor Semana</span>
+          <strong>${escapeHtml(semanasVentas.peorSemana)}</strong>
         </div>
       </div>
       <div class="period-grid">
@@ -462,6 +528,10 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
           <span>Producto Menos Vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
+      </div>
+      <div class="period-row">
+        <span>Clientes Atendidos</span>
+        <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
       </div>
     </section>
   `;
