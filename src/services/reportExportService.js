@@ -93,6 +93,12 @@ const formatMonthLabel = ({ fechaInicio }) => {
   return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
 };
 
+const formatYearLabel = ({ fechaInicio }) => {
+  const date = parseLocalDate(fechaInicio);
+
+  return String(date.getFullYear());
+};
+
 const formatReportCurrency = (value) =>
   `C$ ${Number.isFinite(value) ? value.toLocaleString("en-US", {
     maximumFractionDigits: 2,
@@ -372,6 +378,68 @@ const obtenerSemanasVentas = (ventas = []) => {
   };
 };
 
+const obtenerMesesVentas = (ventas = []) => {
+  const ventasPorMes = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const date = parseLocalDate(dateKey);
+    const month = date.getMonth();
+    const current = acc[month] ?? { cantidad: 0, monto: 0 };
+
+    acc[month] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const mesesConVentas = Object.entries(ventasPorMes).map(([month, data]) => ({
+    month: Number(month),
+    ...data,
+  }));
+
+  if (!mesesConVentas.length) {
+    return {
+      mejorMes: "Sin ventas",
+      peorMes: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.month - b.month;
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.month - b.month;
+  };
+
+  return {
+    mejorMes: MONTH_NAMES[[...mesesConVentas].sort(ordenarPorMayor)[0].month],
+    peorMes: MONTH_NAMES[[...mesesConVentas].sort(ordenarPorMenor)[0].month],
+  };
+};
+
 const crearResumenDiarioHtml = ({ rango, reporte }) => {
   const productoMasVendido =
     obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
@@ -537,11 +605,73 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
   `;
 };
 
+const crearResumenAnualHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+  const mesesVentas = obtenerMesesVentas(reporte.ventas);
+
+  return `
+    <section class="period-report">
+      <div class="period-title">REPORTE DE VENTAS ANUAL</div>
+      <div class="period-row period-date">
+        <span>Año:</span>
+        <strong>${escapeHtml(formatYearLabel(rango))}</strong>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="period-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Mejor Mes</span>
+          <strong>${escapeHtml(mesesVentas.mejorMes)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Peor Mes</span>
+          <strong>${escapeHtml(mesesVentas.peorMes)}</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+      <div class="period-row">
+        <span>Clientes Atendidos</span>
+        <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+      </div>
+    </section>
+  `;
+};
+
 const crearHtmlReporte = ({ periodo, rango, reporte }) => {
   const logoUri = Image.resolveAssetSource(LOGO_IMAGE)?.uri;
   const esReporteDiario = rango.fechaInicio === rango.fechaFin;
   const esReporteSemanal = periodo === "Semana";
   const esReporteMensual = periodo === "Mes";
+  const esReporteAnual =
+    rango.fechaInicio.endsWith("-01-01") && rango.fechaFin.endsWith("-12-31");
   const productosRows = buildRows(
     reporte.productos,
     (producto, index) => `
@@ -794,6 +924,7 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
         ${esReporteDiario ? crearResumenDiarioHtml({ rango, reporte }) : ""}
         ${esReporteSemanal ? crearResumenSemanalHtml({ rango, reporte }) : ""}
         ${esReporteMensual ? crearResumenMensualHtml({ rango, reporte }) : ""}
+        ${esReporteAnual ? crearResumenAnualHtml({ rango, reporte }) : ""}
 
         <section class="summary">
           <div class="summary-card">
