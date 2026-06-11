@@ -468,7 +468,7 @@ const crearResumenDiarioHtml = ({ rango, reporte }) => {
         </div>
         <div class="daily-row">
           <span>Ganancia Estimada</span>
-          <strong>No disponible</strong>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="daily-grid">
@@ -518,7 +518,7 @@ const crearResumenSemanalHtml = ({ rango, reporte }) => {
         </div>
         <div class="period-row">
           <span>Ganancia Estimada</span>
-          <strong>No disponible</strong>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="period-grid">
@@ -574,7 +574,7 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
         </div>
         <div class="period-row">
           <span>Ganancia Estimada</span>
-          <strong>No disponible</strong>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="period-grid">
@@ -634,7 +634,7 @@ const crearResumenAnualHtml = ({ rango, reporte }) => {
         </div>
         <div class="period-row">
           <span>Ganancia Estimada</span>
-          <strong>No disponible</strong>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="period-grid">

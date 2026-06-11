@@ -48,6 +48,7 @@ export default function ProductDetailScreen() {
     fecha_vencimiento: "",
     nombre: "",
     precio: "",
+    precio_compra: "",
     presentacion_id: "unidad",
     stock_minimo_presentaciones: "1",
     stock_presentaciones: "0",
@@ -59,12 +60,18 @@ export default function ProductDetailScreen() {
   const presentation = getPresentation(form.tipo_medida, form.presentacion_id);
   const cantidadPorPresentacion = presentation?.baseUnits ?? 1;
   const precioNumber = Number(form.precio);
+  const precioCompraNumber = Number(form.precio_compra);
   const stockNumber = Number(form.stock_presentaciones);
   const stockMinimoNumber = Number(form.stock_minimo_presentaciones);
   const precioBase =
     Number.isFinite(precioNumber) && precioNumber > 0
       ? precioNumber / cantidadPorPresentacion
       : 0;
+  const precioCompraBase =
+    Number.isFinite(precioCompraNumber) && precioCompraNumber > 0
+      ? precioCompraNumber / cantidadPorPresentacion
+      : 0;
+  const gananciaBase = precioBase - precioCompraBase;
   const stockBase =
     Number.isInteger(stockNumber) && stockNumber >= 0
       ? stockNumber * cantidadPorPresentacion
@@ -136,6 +143,7 @@ export default function ProductDetailScreen() {
         fecha_vencimiento: productoData.fecha_vencimiento ?? "",
         nombre: productoData.nombre,
         precio: String(productoData.precio),
+        precio_compra: String(productoData.precio_compra ?? ""),
         presentacion_id: productoData.presentacion_id || "unidad",
         stock_minimo_presentaciones: String(
           Math.round(productoData.stock_minimo / cantidad),
@@ -196,6 +204,7 @@ export default function ProductDetailScreen() {
   const validarFormulario = () => {
     const nextErrors = {};
     const precioValidado = Number(form.precio);
+    const precioCompraValidado = Number(form.precio_compra);
     const stockValidado = Number(form.stock_presentaciones);
     const stockMinimoValidado = Number(form.stock_minimo_presentaciones);
 
@@ -211,6 +220,17 @@ export default function ProductDetailScreen() {
       nextErrors.precio = "La casilla de precio no puede estar vacia";
     } else if (!Number.isFinite(precioValidado) || precioValidado <= 0) {
       nextErrors.precio = "El precio debe ser mayor que cero";
+    }
+
+    if (!form.precio_compra.trim()) {
+      nextErrors.precio_compra =
+        "La casilla de precio de compra no puede estar vacia";
+    } else if (
+      !Number.isFinite(precioCompraValidado) ||
+      precioCompraValidado <= 0
+    ) {
+      nextErrors.precio_compra =
+        "El precio de compra debe ser mayor que cero";
     }
 
     if (!form.stock_presentaciones.trim()) {
@@ -233,6 +253,7 @@ export default function ProductDetailScreen() {
       "nombre",
       "categoria_id",
       "precio",
+      "precio_compra",
       "stock_presentaciones",
       "stock_minimo_presentaciones",
     ].find((field) => nextErrors[field]);
@@ -259,6 +280,7 @@ export default function ProductDetailScreen() {
         fecha_vencimiento: form.fecha_vencimiento,
         nombre: form.nombre,
         precio: parseFloat(form.precio),
+        precio_compra: parseFloat(form.precio_compra),
         presentacion_id: form.presentacion_id,
         stock_minimo_presentaciones: parseInt(
           form.stock_minimo_presentaciones,
@@ -425,6 +447,23 @@ export default function ProductDetailScreen() {
             <Text style={styles.errorText}>{errores.precio}</Text>
           ) : null}
 
+          <TextInput
+            onLayout={registrarPosicion("precio_compra")}
+            placeholder="Precio de compra de la presentacion"
+            placeholderTextColor={colors.textMuted}
+            style={[
+              styles.input,
+              themedInputStyle,
+              errores.precio_compra && styles.inputError,
+            ]}
+            keyboardType="numeric"
+            value={form.precio_compra}
+            onChangeText={(value) => actualizarCampo("precio_compra", value)}
+          />
+          {errores.precio_compra ? (
+            <Text style={styles.errorText}>{errores.precio_compra}</Text>
+          ) : null}
+
           <Text style={[styles.label, { color: colors.text }]}>
             Tipo de medida
           </Text>
@@ -568,6 +607,14 @@ export default function ProductDetailScreen() {
               {formatCurrency(precioBase)}
             </Text>
             <Text style={[styles.calculationText, { color: colors.textMuted }]}>
+              Costo por {measurementType.baseLabel}:{" "}
+              {formatCurrency(precioCompraBase)}
+            </Text>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
+              Ganancia por {measurementType.baseLabel}:{" "}
+              {formatCurrency(gananciaBase)}
+            </Text>
+            <Text style={[styles.calculationText, { color: colors.textMuted }]}>
               Stock guardado:{" "}
               {formatBaseQuantity(stockBase, measurementType.baseLabel)}
             </Text>
@@ -655,6 +702,14 @@ export default function ProductDetailScreen() {
             <DetailRow
               label="Precio por unidad minima"
               value={`${formatCurrency(producto.precio_base)} / ${producto.unidad_base}`}
+            />
+            <DetailRow
+              label="Costo por presentacion"
+              value={`${formatCurrency(producto.precio_compra)} / ${producto.presentacion_nombre}`}
+            />
+            <DetailRow
+              label="Costo por unidad minima"
+              value={`${formatCurrency(producto.precio_compra_base)} / ${producto.unidad_base}`}
             />
             <DetailRow
               label="Stock actual"

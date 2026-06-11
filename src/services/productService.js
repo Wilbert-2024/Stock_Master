@@ -27,6 +27,7 @@ const prepararProducto = async (producto) => {
   const codigo_barras = producto.codigo_barras?.trim() || null;
   const categoria_id = Number(producto.categoria_id);
   const precio = Number(producto.precio);
+  const precio_compra = Number(producto.precio_compra);
   const tipo_medida = producto.tipo_medida ?? "unidad";
   const presentacion_id = producto.presentacion_id ?? "unidad";
   const stockPresentaciones = Number(
@@ -55,6 +56,10 @@ const prepararProducto = async (producto) => {
 
   if (!Number.isFinite(precio) || precio <= 0) {
     throw new Error("El precio debe ser mayor que cero");
+  }
+
+  if (!Number.isFinite(precio_compra) || precio_compra <= 0) {
+    throw new Error("El precio de compra debe ser mayor que cero");
   }
 
   if (!measurementType) {
@@ -94,6 +99,7 @@ const prepararProducto = async (producto) => {
   const stock = stockPresentaciones * presentation.baseUnits;
   const stock_minimo = stockMinimoPresentaciones * presentation.baseUnits;
   const precio_base = precio / presentation.baseUnits;
+  const precio_compra_base = precio_compra / presentation.baseUnits;
 
   return {
     cantidad_por_presentacion: presentation.baseUnits,
@@ -103,6 +109,8 @@ const prepararProducto = async (producto) => {
     nombre,
     precio,
     precio_base,
+    precio_compra,
+    precio_compra_base,
     presentacion_id: presentation.id,
     presentacion_nombre: presentation.label,
     stock,

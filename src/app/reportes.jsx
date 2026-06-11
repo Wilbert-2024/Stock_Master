@@ -36,6 +36,7 @@ export default function ReportsScreen() {
   const [reporte, setReporte] = useState({
     productos: [],
     resumen: {
+      gananciaTotal: 0,
       montoTotal: 0,
       productosVendidos: 0,
       totalVentas: 0,
@@ -205,6 +206,13 @@ export default function ReportsScreen() {
             <Text style={styles.totalLabel}>Total vendido</Text>
             <Text style={styles.totalValue}>
               {formatCurrency(reporte.resumen.montoTotal)}
+            </Text>
+          </View>
+
+          <View style={styles.profitCard}>
+            <Text style={styles.profitLabel}>Ganancia estimada</Text>
+            <Text style={styles.profitValue}>
+              {formatCurrency(reporte.resumen.gananciaTotal)}
             </Text>
           </View>
 
@@ -420,6 +428,23 @@ const styles = StyleSheet.create({
   productInfo: {
     flex: 1,
     marginLeft: 12,
+  },
+  profitCard: {
+    backgroundColor: "#0F8A45",
+    borderRadius: 16,
+    marginBottom: 10,
+    padding: 18,
+  },
+  profitLabel: {
+    color: "#DCFCE7",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  profitValue: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "900",
+    marginTop: 6,
   },
   productMeta: {
     color: "#64748B",

@@ -37,6 +37,7 @@ export default function RegistrarProductoScreen() {
   const [categoriaId, setCategoriaId] = useState(null);
   const [cargandoCategorias, setCargandoCategorias] = useState(true);
   const [precio, setPrecio] = useState("");
+  const [precioCompra, setPrecioCompra] = useState("");
   const [stock, setStock] = useState("");
   const [stockMinimo, setStockMinimo] = useState("1");
   const [tipoMedida, setTipoMedida] = useState("unidad");
@@ -49,6 +50,7 @@ export default function RegistrarProductoScreen() {
   const presentationOptions = getPresentationOptions(tipoMedida);
   const presentation = getPresentation(tipoMedida, presentacionId);
   const precioNumber = Number(precio);
+  const precioCompraNumber = Number(precioCompra);
   const stockNumber = Number(stock);
   const stockMinimoNumber = Number(stockMinimo);
   const cantidadPorPresentacion = presentation?.baseUnits ?? 1;
@@ -56,6 +58,11 @@ export default function RegistrarProductoScreen() {
     Number.isFinite(precioNumber) && precioNumber > 0
       ? precioNumber / cantidadPorPresentacion
       : 0;
+  const precioCompraBase =
+    Number.isFinite(precioCompraNumber) && precioCompraNumber > 0
+      ? precioCompraNumber / cantidadPorPresentacion
+      : 0;
+  const gananciaBase = precioBase - precioCompraBase;
   const stockBase =
     Number.isInteger(stockNumber) && stockNumber >= 0
       ? stockNumber * cantidadPorPresentacion
@@ -180,6 +187,7 @@ export default function RegistrarProductoScreen() {
   const validarFormulario = () => {
     const nextErrors = {};
     const precioValidado = Number(precio);
+    const precioCompraValidado = Number(precioCompra);
     const stockValidado = Number(stock);
     const stockMinimoValidado = Number(stockMinimo);
 
@@ -197,6 +205,16 @@ export default function RegistrarProductoScreen() {
       nextErrors.precio = "El precio debe ser mayor que cero";
     }
 
+    if (!precioCompra.trim()) {
+      nextErrors.precioCompra =
+        "La casilla de precio de compra no puede estar vacia";
+    } else if (
+      !Number.isFinite(precioCompraValidado) ||
+      precioCompraValidado <= 0
+    ) {
+      nextErrors.precioCompra = "El precio de compra debe ser mayor que cero";
+    }
+
     if (!stock.trim()) {
       nextErrors.stock = "La casilla de stock inicial no puede estar vacia";
     } else if (!Number.isInteger(stockValidado) || stockValidado < 0) {
@@ -211,9 +229,14 @@ export default function RegistrarProductoScreen() {
 
     setErrores(nextErrors);
 
-    const firstError = ["nombre", "categoria", "precio", "stock", "stockMinimo"].find(
-      (field) => nextErrors[field],
-    );
+    const firstError = [
+      "nombre",
+      "categoria",
+      "precio",
+      "precioCompra",
+      "stock",
+      "stockMinimo",
+    ].find((field) => nextErrors[field]);
 
     if (firstError) {
       irAlCampo(firstError);
@@ -236,6 +259,7 @@ export default function RegistrarProductoScreen() {
         fecha_vencimiento: fechaVencimiento,
         nombre,
         precio: parseFloat(precio),
+        precio_compra: parseFloat(precioCompra),
         presentacion_id: presentacionId,
         stock_minimo_presentaciones: parseInt(stockMinimo, 10),
         stock_presentaciones: parseInt(stock, 10),
@@ -348,6 +372,26 @@ export default function RegistrarProductoScreen() {
         }}
       />
       {errores.precio ? <Text style={styles.errorText}>{errores.precio}</Text> : null}
+
+      <TextInput
+        onLayout={registrarPosicion("precioCompra")}
+        placeholder="Precio de compra de la presentacion"
+        placeholderTextColor={colors.textMuted}
+        style={[
+          styles.input,
+          themedInputStyle,
+          errores.precioCompra && styles.inputError,
+        ]}
+        keyboardType="numeric"
+        value={precioCompra}
+        onChangeText={(value) => {
+          setPrecioCompra(value);
+          limpiarError("precioCompra");
+        }}
+      />
+      {errores.precioCompra ? (
+        <Text style={styles.errorText}>{errores.precioCompra}</Text>
+      ) : null}
 
       <Text style={[styles.label, { color: colors.text }]}>Tipo de medida</Text>
       <View style={styles.segmentGroup}>
@@ -469,6 +513,12 @@ export default function RegistrarProductoScreen() {
         </Text>
         <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Precio por {measurementType.baseLabel}: {formatCurrency(precioBase)}
+        </Text>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
+          Costo por {measurementType.baseLabel}: {formatCurrency(precioCompraBase)}
+        </Text>
+        <Text style={[styles.calculationText, { color: colors.textMuted }]}>
+          Ganancia por {measurementType.baseLabel}: {formatCurrency(gananciaBase)}
         </Text>
         <Text style={[styles.calculationText, { color: colors.textMuted }]}>
           Stock guardado: {formatBaseQuantity(stockBase, measurementType.baseLabel)}

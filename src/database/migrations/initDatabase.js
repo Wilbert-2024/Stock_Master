@@ -39,6 +39,8 @@ export const initDatabase = async () => {
         categoria_id INTEGER,
         precio REAL NOT NULL,
         precio_base REAL NOT NULL DEFAULT 0,
+        precio_compra REAL NOT NULL DEFAULT 0,
+        precio_compra_base REAL NOT NULL DEFAULT 0,
         stock INTEGER NOT NULL,
         stock_minimo INTEGER NOT NULL DEFAULT 5,
         tipo_medida TEXT NOT NULL DEFAULT 'unidad',
@@ -72,6 +74,9 @@ export const initDatabase = async () => {
         cantidad_base INTEGER NOT NULL,
         cantidad_presentaciones REAL NOT NULL,
         precio_unitario REAL NOT NULL,
+        costo_unitario REAL NOT NULL DEFAULT 0,
+        costo_total REAL NOT NULL DEFAULT 0,
+        ganancia REAL NOT NULL DEFAULT 0,
         subtotal REAL NOT NULL,
         FOREIGN KEY (venta_id) REFERENCES ventas(id),
         FOREIGN KEY (producto_id) REFERENCES productos(id)
@@ -120,6 +125,16 @@ export const initDatabase = async () => {
     await ensureColumn("productos", "precio_base", "precio_base REAL NOT NULL DEFAULT 0");
     await ensureColumn(
       "productos",
+      "precio_compra",
+      "precio_compra REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "productos",
+      "precio_compra_base",
+      "precio_compra_base REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "productos",
       "tipo_medida",
       "tipo_medida TEXT NOT NULL DEFAULT 'unidad'",
     );
@@ -150,11 +165,36 @@ export const initDatabase = async () => {
       "fecha_registro TEXT",
     );
     await ensureColumn("productos", "activo", "activo INTEGER NOT NULL DEFAULT 1");
+    await ensureColumn(
+      "detalle_ventas",
+      "costo_unitario",
+      "costo_unitario REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "detalle_ventas",
+      "costo_total",
+      "costo_total REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "detalle_ventas",
+      "ganancia",
+      "ganancia REAL NOT NULL DEFAULT 0",
+    );
 
     await db.execAsync(`
       UPDATE productos
       SET precio_base = precio / cantidad_por_presentacion
       WHERE precio_base = 0 AND cantidad_por_presentacion > 0;
+
+      UPDATE productos
+      SET precio_compra_base = precio_compra / cantidad_por_presentacion
+      WHERE precio_compra > 0
+        AND precio_compra_base = 0
+        AND cantidad_por_presentacion > 0;
+
+      UPDATE detalle_ventas
+      SET ganancia = subtotal - costo_total
+      WHERE ganancia = 0 AND costo_total > 0;
     `);
 
     console.log("Base de datos inicializada");

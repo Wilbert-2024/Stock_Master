@@ -30,9 +30,12 @@ export const insertarVenta = async ({
           cantidad_base,
           cantidad_presentaciones,
           precio_unitario,
+          costo_unitario,
+          costo_total,
+          ganancia,
           subtotal
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           ventaId,
           item.producto_id,
@@ -42,6 +45,9 @@ export const insertarVenta = async ({
           item.cantidad_base,
           item.cantidad_presentaciones,
           item.precio_unitario,
+          item.costo_unitario,
+          item.costo_total,
+          item.ganancia,
           item.subtotal,
         ],
       );
@@ -138,11 +144,17 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
         SELECT
           COUNT(*) AS totalVentas,
           COALESCE(SUM(total), 0) AS montoTotal,
-          COALESCE(SUM(cantidad_productos), 0) AS productosVendidos
+          COALESCE(SUM(cantidad_productos), 0) AS productosVendidos,
+          COALESCE((
+            SELECT SUM(dv.ganancia)
+            FROM detalle_ventas dv
+            INNER JOIN ventas v2 ON v2.id = dv.venta_id
+            WHERE date(v2.fecha) BETWEEN date(?) AND date(?)
+          ), 0) AS gananciaTotal
         FROM ventas
         WHERE date(fecha) BETWEEN date(?) AND date(?)
       `,
-      [fechaInicio, fechaFin],
+      [fechaInicio, fechaFin, fechaInicio, fechaFin],
     );
 
     const ventas = await db.getAllAsync(
@@ -181,7 +193,8 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
           producto_nombre,
           unidad_base,
           SUM(cantidad_base) AS cantidad_base,
-          SUM(subtotal) AS total_vendido
+          SUM(subtotal) AS total_vendido,
+          SUM(ganancia) AS ganancia_total
         FROM detalle_ventas dv
         INNER JOIN ventas v ON v.id = dv.venta_id
         WHERE date(v.fecha) BETWEEN date(?) AND date(?)
@@ -199,6 +212,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
       },
       resumen: {
         montoTotal: Number(resumen?.montoTotal ?? 0),
+        gananciaTotal: Number(resumen?.gananciaTotal ?? 0),
         productosVendidos: Number(resumen?.productosVendidos ?? 0),
         totalVentas: Number(resumen?.totalVentas ?? 0),
       },
