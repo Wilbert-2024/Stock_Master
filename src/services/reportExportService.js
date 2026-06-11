@@ -31,6 +31,80 @@ const formatFileDate = (date = new Date()) =>
 
 const getReportFileName = () => `Reporte_StockMaster_${formatFileDate()}.pdf`;
 
+const formatDisplayDate = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const [year, month, day] = String(value).split("-");
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
+const MONTH_NAMES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+const WEEKDAY_NAMES = [
+  "Domingo",
+  "Lunes",
+  "Martes",
+  "Miercoles",
+  "Jueves",
+  "Viernes",
+  "Sabado",
+];
+
+const parseLocalDate = (value) => new Date(`${value}T12:00:00`);
+
+const formatWeeklyRange = ({ fechaFin, fechaInicio }) => {
+  const start = parseLocalDate(fechaInicio);
+  const end = parseLocalDate(fechaFin);
+  const sameMonth = start.getMonth() === end.getMonth();
+  const sameYear = start.getFullYear() === end.getFullYear();
+
+  if (sameMonth && sameYear) {
+    return `${String(start.getDate()).padStart(2, "0")} - ${String(
+      end.getDate(),
+    ).padStart(2, "0")} ${MONTH_NAMES[end.getMonth()]} ${end.getFullYear()}`;
+  }
+
+  return `${formatDisplayDate(fechaInicio)} - ${formatDisplayDate(fechaFin)}`;
+};
+
+const formatMonthLabel = ({ fechaInicio }) => {
+  const date = parseLocalDate(fechaInicio);
+
+  return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+};
+
+const formatYearLabel = ({ fechaInicio }) => {
+  const date = parseLocalDate(fechaInicio);
+
+  return String(date.getFullYear());
+};
+
+const formatReportCurrency = (value) =>
+  `C$ ${Number.isFinite(value) ? value.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  }) : "0.00"}`;
+
 const buildRows = (items, renderRow, emptyText, columns) => {
   if (!items.length) {
     return `<tr><td colspan="${columns}" class="empty">${escapeHtml(emptyText)}</td></tr>`;
@@ -88,8 +162,516 @@ const crearDetalleVentaHtml = (detalle = []) => {
   `;
 };
 
+const obtenerProductoMasVendido = (productos = []) => productos[0]?.producto_nombre;
+
+const obtenerProductoMenosVendido = (productos = []) => {
+  if (!productos.length) {
+    return null;
+  }
+
+  return [...productos].sort((a, b) => {
+    const cantidadA = Number(a.cantidad_base ?? 0);
+    const cantidadB = Number(b.cantidad_base ?? 0);
+    const totalA = Number(a.total_vendido ?? 0);
+    const totalB = Number(b.total_vendido ?? 0);
+
+    if (cantidadA !== cantidadB) {
+      return cantidadA - cantidadB;
+    }
+
+    return totalA - totalB;
+  })[0]?.producto_nombre;
+};
+
+const getSaleDateKey = (venta) => String(venta.fecha ?? "").slice(0, 10);
+
+const obtenerDiasVentas = (ventas = []) => {
+  const ventasPorDia = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const day = parseLocalDate(dateKey).getDay();
+    const current = acc[day] ?? { cantidad: 0, monto: 0 };
+
+    acc[day] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const diasConVentas = Object.entries(ventasPorDia).map(([day, data]) => ({
+    day: Number(day),
+    ...data,
+  }));
+
+  if (!diasConVentas.length) {
+    return {
+      menosVentas: "Sin ventas",
+      masVentas: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.day - b.day;
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.day - b.day;
+  };
+
+  return {
+    menosVentas: WEEKDAY_NAMES[[...diasConVentas].sort(ordenarPorMenor)[0].day],
+    masVentas: WEEKDAY_NAMES[[...diasConVentas].sort(ordenarPorMayor)[0].day],
+  };
+};
+
+const obtenerFechasVentas = (ventas = []) => {
+  const ventasPorFecha = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const current = acc[dateKey] ?? { cantidad: 0, monto: 0 };
+
+    acc[dateKey] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const fechasConVentas = Object.entries(ventasPorFecha).map(([dateKey, data]) => ({
+    dateKey,
+    ...data,
+  }));
+
+  if (!fechasConVentas.length) {
+    return {
+      menosVentas: "Sin ventas",
+      masVentas: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.dateKey.localeCompare(b.dateKey);
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.dateKey.localeCompare(b.dateKey);
+  };
+
+  const formatDateWithDay = (dateKey) => {
+    const date = parseLocalDate(dateKey);
+
+    return `${WEEKDAY_NAMES[date.getDay()]} ${formatDisplayDate(dateKey)}`;
+  };
+
+  return {
+    menosVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMenor)[0].dateKey),
+    masVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMayor)[0].dateKey),
+  };
+};
+
+const obtenerSemanasVentas = (ventas = []) => {
+  const ventasPorSemana = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const date = parseLocalDate(dateKey);
+    const weekNumber = Math.ceil(date.getDate() / 7);
+    const current = acc[weekNumber] ?? { cantidad: 0, monto: 0 };
+
+    acc[weekNumber] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const semanasConVentas = Object.entries(ventasPorSemana).map(
+    ([weekNumber, data]) => ({
+      weekNumber: Number(weekNumber),
+      ...data,
+    }),
+  );
+
+  if (!semanasConVentas.length) {
+    return {
+      mejorSemana: "Sin ventas",
+      peorSemana: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.weekNumber - b.weekNumber;
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.weekNumber - b.weekNumber;
+  };
+
+  const formatWeek = (weekNumber) => `Semana #${weekNumber}`;
+
+  return {
+    mejorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMayor)[0].weekNumber),
+    peorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMenor)[0].weekNumber),
+  };
+};
+
+const obtenerMesesVentas = (ventas = []) => {
+  const ventasPorMes = ventas.reduce((acc, venta) => {
+    const dateKey = getSaleDateKey(venta);
+
+    if (!dateKey) {
+      return acc;
+    }
+
+    const date = parseLocalDate(dateKey);
+    const month = date.getMonth();
+    const current = acc[month] ?? { cantidad: 0, monto: 0 };
+
+    acc[month] = {
+      cantidad: current.cantidad + 1,
+      monto: current.monto + Number(venta.total ?? 0),
+    };
+
+    return acc;
+  }, {});
+
+  const mesesConVentas = Object.entries(ventasPorMes).map(([month, data]) => ({
+    month: Number(month),
+    ...data,
+  }));
+
+  if (!mesesConVentas.length) {
+    return {
+      mejorMes: "Sin ventas",
+      peorMes: "Sin ventas",
+    };
+  }
+
+  const ordenarPorMayor = (a, b) => {
+    if (b.monto !== a.monto) {
+      return b.monto - a.monto;
+    }
+
+    if (b.cantidad !== a.cantidad) {
+      return b.cantidad - a.cantidad;
+    }
+
+    return a.month - b.month;
+  };
+
+  const ordenarPorMenor = (a, b) => {
+    if (a.monto !== b.monto) {
+      return a.monto - b.monto;
+    }
+
+    if (a.cantidad !== b.cantidad) {
+      return a.cantidad - b.cantidad;
+    }
+
+    return a.month - b.month;
+  };
+
+  return {
+    mejorMes: MONTH_NAMES[[...mesesConVentas].sort(ordenarPorMayor)[0].month],
+    peorMes: MONTH_NAMES[[...mesesConVentas].sort(ordenarPorMenor)[0].month],
+  };
+};
+
+const crearResumenDiarioHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+
+  return `
+    <section class="daily-report">
+      <div class="daily-title">REPORTE DE VENTAS DIARIO</div>
+      <div class="daily-row daily-date">
+        <span>Fecha:</span>
+        <strong>${escapeHtml(formatDisplayDate(rango.fechaInicio))}</strong>
+      </div>
+      <div class="daily-grid">
+        <div class="daily-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="daily-grid">
+        <div class="daily-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="daily-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+      <div class="daily-row">
+        <span>Cliente Frecuente</span>
+        <strong>Consumidor General</strong>
+      </div>
+    </section>
+  `;
+};
+
+const crearResumenSemanalHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+  const diasVentas = obtenerDiasVentas(reporte.ventas);
+
+  return `
+    <section class="period-report">
+      <div class="period-title">REPORTE DE VENTAS SEMANAL</div>
+      <div class="period-row period-date">
+        <span>Semana:</span>
+        <strong>${escapeHtml(formatWeeklyRange(rango))}</strong>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="period-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Dia con Mas Ventas</span>
+          <strong>${escapeHtml(diasVentas.masVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Dia con Menos Ventas</span>
+          <strong>${escapeHtml(diasVentas.menosVentas)}</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
+const crearResumenMensualHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+  const semanasVentas = obtenerSemanasVentas(reporte.ventas);
+
+  return `
+    <section class="period-report">
+      <div class="period-title">REPORTE DE VENTAS MENSUAL</div>
+      <div class="period-row period-date">
+        <span>Mes:</span>
+        <strong>${escapeHtml(formatMonthLabel(rango))}</strong>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="period-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Mejor Semana</span>
+          <strong>${escapeHtml(semanasVentas.mejorSemana)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Peor Semana</span>
+          <strong>${escapeHtml(semanasVentas.peorSemana)}</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+      <div class="period-row">
+        <span>Clientes Atendidos</span>
+        <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+      </div>
+    </section>
+  `;
+};
+
+const crearResumenAnualHtml = ({ rango, reporte }) => {
+  const productoMasVendido =
+    obtenerProductoMasVendido(reporte.productos) ?? "Sin ventas";
+  const productoMenosVendido =
+    obtenerProductoMenosVendido(reporte.productos) ?? "Sin ventas";
+  const mesesVentas = obtenerMesesVentas(reporte.ventas);
+
+  return `
+    <section class="period-report">
+      <div class="period-title">REPORTE DE VENTAS ANUAL</div>
+      <div class="period-row period-date">
+        <span>Año:</span>
+        <strong>${escapeHtml(formatYearLabel(rango))}</strong>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Total de Ventas</span>
+          <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
+        </div>
+        <div class="period-row">
+          <span>Cantidad de Ventas</span>
+          <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Productos Vendidos</span>
+          <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Ganancia Estimada</span>
+          <strong>No disponible</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Mejor Mes</span>
+          <strong>${escapeHtml(mesesVentas.mejorMes)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Peor Mes</span>
+          <strong>${escapeHtml(mesesVentas.peorMes)}</strong>
+        </div>
+      </div>
+      <div class="period-grid">
+        <div class="period-row">
+          <span>Producto Mas Vendido</span>
+          <strong>${escapeHtml(productoMasVendido)}</strong>
+        </div>
+        <div class="period-row">
+          <span>Producto Menos Vendido</span>
+          <strong>${escapeHtml(productoMenosVendido)}</strong>
+        </div>
+      </div>
+      <div class="period-row">
+        <span>Clientes Atendidos</span>
+        <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
+      </div>
+    </section>
+  `;
+};
+
 const crearHtmlReporte = ({ periodo, rango, reporte }) => {
   const logoUri = Image.resolveAssetSource(LOGO_IMAGE)?.uri;
+  const esReporteDiario = rango.fechaInicio === rango.fechaFin;
+  const esReporteSemanal = periodo === "Semana";
+  const esReporteMensual = periodo === "Mes";
+  const esReporteAnual =
+    rango.fechaInicio.endsWith("-01-01") && rango.fechaFin.endsWith("-12-31");
   const productosRows = buildRows(
     reporte.productos,
     (producto, index) => `
@@ -184,6 +766,57 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
             margin: 18px 0;
             table-layout: fixed;
             width: 100%;
+          }
+          .daily-report,
+          .period-report {
+            border: 2px solid #003B95;
+            border-radius: 14px;
+            margin: 18px 0;
+            overflow: hidden;
+          }
+          .daily-title,
+          .period-title {
+            background: #003B95;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 0.4px;
+            padding: 14px;
+            text-align: center;
+          }
+          .daily-grid,
+          .period-grid {
+            border-top: 1px solid #bfdbfe;
+          }
+          .daily-row,
+          .period-row {
+            align-items: center;
+            border-top: 1px solid #dbeafe;
+            display: flex;
+            font-size: 14px;
+            justify-content: space-between;
+            padding: 11px 14px;
+          }
+          .daily-title + .daily-row,
+          .daily-grid .daily-row:first-child,
+          .period-title + .period-row,
+          .period-grid .period-row:first-child {
+            border-top: 0;
+          }
+          .daily-date,
+          .period-date {
+            background: #f8fafc;
+          }
+          .daily-row span,
+          .period-row span {
+            color: #334155;
+            font-weight: 800;
+          }
+          .daily-row strong,
+          .period-row strong {
+            color: #0f172a;
+            font-weight: 900;
+            text-align: right;
           }
           .summary-card {
             background: #f8fafc;
@@ -287,6 +920,11 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
             <div class="meta">Generado: ${escapeHtml(formatDateTime())}</div>
           </div>
         </section>
+
+        ${esReporteDiario ? crearResumenDiarioHtml({ rango, reporte }) : ""}
+        ${esReporteSemanal ? crearResumenSemanalHtml({ rango, reporte }) : ""}
+        ${esReporteMensual ? crearResumenMensualHtml({ rango, reporte }) : ""}
+        ${esReporteAnual ? crearResumenAnualHtml({ rango, reporte }) : ""}
 
         <section class="summary">
           <div class="summary-card">

@@ -12,6 +12,7 @@ import {
 import { useAppTheme } from "../../theme/AppThemeProvider";
 
 const HIDE_DELAY_MS = 2000;
+const NAV_HEIGHT = 78;
 
 const NAV_ITEMS = [
   { icon: "home", label: "Inicio", route: "/", section: "inicio" },
@@ -63,7 +64,8 @@ export default function AutoHideBottomNav({ children }) {
   const pathname = usePathname();
   const activeSection = useMemo(() => getActiveSection(pathname), [pathname]);
   const navEnabled = shouldShowNav(pathname);
-  const translateY = useRef(new Animated.Value(0)).current;
+  const navHeight = useRef(new Animated.Value(NAV_HEIGHT)).current;
+  const navOpacity = useRef(new Animated.Value(1)).current;
   const hideTimerRef = useRef(null);
   const [visible, setVisible] = useState(true);
 
@@ -80,12 +82,19 @@ export default function AutoHideBottomNav({ children }) {
     }
 
     setVisible(false);
-    Animated.timing(translateY, {
-      duration: 220,
-      toValue: 96,
-      useNativeDriver: true,
-    }).start();
-  }, [navEnabled, translateY]);
+    Animated.parallel([
+      Animated.timing(navHeight, {
+        duration: 220,
+        toValue: 0,
+        useNativeDriver: false,
+      }),
+      Animated.timing(navOpacity, {
+        duration: 160,
+        toValue: 0,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [navEnabled, navHeight, navOpacity]);
 
   const scheduleHide = useCallback(() => {
     clearHideTimer();
@@ -98,26 +107,34 @@ export default function AutoHideBottomNav({ children }) {
     }
 
     setVisible(true);
-    Animated.timing(translateY, {
-      duration: 180,
-      toValue: 0,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(navHeight, {
+        duration: 180,
+        toValue: NAV_HEIGHT,
+        useNativeDriver: false,
+      }),
+      Animated.timing(navOpacity, {
+        duration: 180,
+        toValue: 1,
+        useNativeDriver: false,
+      }),
+    ]).start();
     scheduleHide();
-  }, [navEnabled, scheduleHide, translateY]);
+  }, [navEnabled, navHeight, navOpacity, scheduleHide]);
 
   useEffect(() => {
     if (!navEnabled) {
       clearHideTimer();
       setVisible(false);
-      translateY.setValue(96);
+      navHeight.setValue(0);
+      navOpacity.setValue(0);
       return;
     }
 
     showNav();
 
     return clearHideTimer;
-  }, [clearHideTimer, navEnabled, pathname, showNav, translateY]);
+  }, [clearHideTimer, navEnabled, navHeight, navOpacity, pathname, showNav]);
 
   const handleNavPress = (route) => {
     showNav();
@@ -125,8 +142,12 @@ export default function AutoHideBottomNav({ children }) {
   };
 
   return (
-    <View style={styles.container} onTouchStart={showNav}>
-      {children}
+    <View
+      style={styles.container}
+      onTouchMove={showNav}
+      onTouchStart={showNav}
+    >
+      <View style={styles.content}>{children}</View>
 
       {navEnabled && (
         <Animated.View
@@ -136,7 +157,9 @@ export default function AutoHideBottomNav({ children }) {
             {
               backgroundColor: colors.card,
               borderColor: colors.border,
-              transform: [{ translateY }],
+              borderTopWidth: visible ? 1 : 0,
+              height: navHeight,
+              opacity: navOpacity,
             },
           ]}
         >
@@ -195,22 +218,21 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     alignItems: "center",
-    borderTopWidth: 1,
-    bottom: 0,
     elevation: 10,
     flexDirection: "row",
-    height: 78,
     justifyContent: "space-around",
-    left: 0,
+    minHeight: 0,
+    overflow: "hidden",
     paddingHorizontal: 8,
-    position: "absolute",
-    right: 0,
     shadowColor: "#0F172A",
     shadowOffset: { height: -8, width: 0 },
     shadowOpacity: 0.08,
     shadowRadius: 14,
   },
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
 });
