@@ -4,6 +4,7 @@ export const insertarVenta = async ({
   cambio,
   cantidad_productos,
   detalle,
+  fecha,
   metodo_pago,
   recibido,
   total,
@@ -12,9 +13,9 @@ export const insertarVenta = async ({
     await db.execAsync("BEGIN TRANSACTION;");
 
     const ventaResult = await db.runAsync(
-      `INSERT INTO ventas (total, cantidad_productos, metodo_pago, recibido, cambio)
-       VALUES (?, ?, ?, ?, ?)`,
-      [total, cantidad_productos, metodo_pago, recibido, cambio],
+      `INSERT INTO ventas (fecha, total, cantidad_productos, metodo_pago, recibido, cambio)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [fecha, total, cantidad_productos, metodo_pago, recibido, cambio],
     );
 
     const ventaId = ventaResult.lastInsertRowId;
@@ -119,7 +120,7 @@ export const obtenerResumenVentas = async () => {
         COALESCE(SUM(total), 0) AS montoTotal,
         COALESCE(SUM(cantidad_productos), 0) AS productosVendidos
       FROM ventas
-      WHERE date(fecha) = date('now', 'localtime')
+      WHERE date(fecha, 'localtime') = date('now', 'localtime')
     `);
 
     return {
@@ -149,10 +150,10 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
             SELECT SUM(dv.ganancia)
             FROM detalle_ventas dv
             INNER JOIN ventas v2 ON v2.id = dv.venta_id
-            WHERE date(v2.fecha) BETWEEN date(?) AND date(?)
+            WHERE date(v2.fecha, 'localtime') BETWEEN date(?) AND date(?)
           ), 0) AS gananciaTotal
         FROM ventas
-        WHERE date(fecha) BETWEEN date(?) AND date(?)
+        WHERE date(fecha, 'localtime') BETWEEN date(?) AND date(?)
       `,
       [fechaInicio, fechaFin, fechaInicio, fechaFin],
     );
@@ -161,7 +162,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
       `
         SELECT *
         FROM ventas
-        WHERE date(fecha) BETWEEN date(?) AND date(?)
+        WHERE date(fecha, 'localtime') BETWEEN date(?) AND date(?)
         ORDER BY id DESC
       `,
       [fechaInicio, fechaFin],
@@ -173,7 +174,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
           dv.*
         FROM detalle_ventas dv
         INNER JOIN ventas v ON v.id = dv.venta_id
-        WHERE date(v.fecha) BETWEEN date(?) AND date(?)
+        WHERE date(v.fecha, 'localtime') BETWEEN date(?) AND date(?)
         ORDER BY dv.venta_id DESC, dv.id ASC
       `,
       [fechaInicio, fechaFin],
@@ -197,7 +198,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
           SUM(ganancia) AS ganancia_total
         FROM detalle_ventas dv
         INNER JOIN ventas v ON v.id = dv.venta_id
-        WHERE date(v.fecha) BETWEEN date(?) AND date(?)
+        WHERE date(v.fecha, 'localtime') BETWEEN date(?) AND date(?)
         GROUP BY producto_id, producto_nombre, unidad_base
         ORDER BY cantidad_base DESC, total_vendido DESC
       `,

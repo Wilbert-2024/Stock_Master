@@ -183,7 +183,49 @@ const obtenerProductoMenosVendido = (productos = []) => {
   })[0]?.producto_nombre;
 };
 
-const getSaleDateKey = (venta) => String(venta.fecha ?? "").slice(0, 10);
+const parseSaleDateTime = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const rawValue = String(value).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+    return parseLocalDate(rawValue);
+  }
+
+  const isoValue = rawValue.includes("T")
+    ? rawValue
+    : rawValue.replace(" ", "T");
+  const hasTimezone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(isoValue);
+  const date = new Date(hasTimezone ? isoValue : `${isoValue}Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const formatLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+
+const getSaleDateKey = (venta) => {
+  const date = parseSaleDateTime(venta.fecha);
+
+  return date ? formatLocalDateKey(date) : "";
+};
+
+const formatSaleDateTime = (value) => {
+  const date = parseSaleDateTime(value);
+
+  if (!date) {
+    return value || "Sin fecha";
+  }
+
+  return `${formatLocalDateKey(date)} ${String(date.getHours()).padStart(
+    2,
+    "0",
+  )}:${String(date.getMinutes()).padStart(2, "0")}`;
+};
 
 const obtenerDiasVentas = (ventas = []) => {
   const ventasPorDia = ventas.reduce((acc, venta) => {
@@ -691,7 +733,7 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
     (venta) => `
       <tr class="sale-row">
         <td>#${escapeHtml(venta.id)}</td>
-        <td>${escapeHtml(venta.fecha)}</td>
+        <td>${escapeHtml(formatSaleDateTime(venta.fecha))}</td>
         <td>${escapeHtml(venta.cantidad_productos)}</td>
         <td>${escapeHtml(venta.metodo_pago)}</td>
         <td class="money">${escapeHtml(formatCurrency(Number(venta.total)))}</td>

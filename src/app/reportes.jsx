@@ -261,7 +261,7 @@ export default function ReportsScreen() {
                     Venta #{item.id}
                   </Text>
                   <Text style={[styles.saleDate, { color: colors.textMuted }]}>
-                    {item.fecha}
+                    {formatSaleDateTime(item.fecha)}
                   </Text>
                 </View>
                 <Text style={styles.saleTotal}>{formatCurrency(item.total)}</Text>
@@ -322,6 +322,38 @@ function formatDate(date) {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+function parseSaleDateTime(value) {
+  if (!value) {
+    return null;
+  }
+
+  const rawValue = String(value).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+    return new Date(`${rawValue}T12:00:00`);
+  }
+
+  const isoValue = rawValue.includes("T")
+    ? rawValue
+    : rawValue.replace(" ", "T");
+  const hasTimezone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(isoValue);
+  const date = new Date(hasTimezone ? isoValue : `${isoValue}Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatSaleDateTime(value) {
+  const date = parseSaleDateTime(value);
+
+  if (!date) {
+    return value || "Sin fecha";
+  }
+
+  return `${formatDate(date)} ${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes(),
+  ).padStart(2, "0")}`;
 }
 
 function SummaryCard({ label, value }) {
