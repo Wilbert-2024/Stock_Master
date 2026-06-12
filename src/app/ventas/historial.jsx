@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from "../../constants/measurements";
 import { listarVentas } from "../../services/salesService";
 import { useAppTheme } from "../../theme/AppThemeProvider";
+import { formatLocalSaleDateTime } from "../../utils/saleDateTime";
 
 export default function SalesHistoryScreen() {
   const { colors } = useAppTheme();
@@ -115,7 +116,7 @@ export default function SalesHistoryScreen() {
                   <PaymentBadge method={item.metodo_pago} />
                 </View>
                 <Text style={[styles.saleDate, { color: colors.textMuted }]}>
-                  {formatDateTime(item.fecha)}
+                  {formatLocalSaleDateTime(item.fecha)}
                 </Text>
                 <Text style={[styles.saleMeta, { color: colors.primary }]}>
                   {item.cantidad_productos} unidades minimas
@@ -150,14 +151,6 @@ function PaymentBadge({ method }) {
       <Text style={[styles.paymentBadgeText, { color }]}>{normalized}</Text>
     </View>
   );
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return "Sin fecha";
-  }
-
-  return String(value).replace("T", " ");
 }
 
 const styles = StyleSheet.create({

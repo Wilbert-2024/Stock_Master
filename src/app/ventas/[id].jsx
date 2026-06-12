@@ -12,6 +12,7 @@ import {
 
 import { formatCurrency } from "../../constants/measurements";
 import { obtenerVenta } from "../../services/salesService";
+import { formatLocalSaleDateTime } from "../../utils/saleDateTime";
 
 export default function SaleDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -71,7 +72,9 @@ export default function SaleDetailScreen() {
               <View style={styles.headerTop}>
                 <View>
                   <Text style={styles.title}>Venta #{venta.id}</Text>
-                  <Text style={styles.dateText}>{formatDateTime(venta.fecha)}</Text>
+                  <Text style={styles.dateText}>
+                    {formatLocalSaleDateTime(venta.fecha)}
+                  </Text>
                 </View>
                 <PaymentBadge method={venta.metodo_pago} />
               </View>
@@ -173,14 +176,6 @@ function PaymentBadge({ method }) {
 function capitalize(value) {
   const text = String(value || "");
   return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return "Sin fecha";
-  }
-
-  return String(value).replace("T", " ");
 }
 
 const styles = StyleSheet.create({
