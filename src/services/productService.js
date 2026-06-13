@@ -223,7 +223,13 @@ export const borrarProductoDesactivado = async (id) => {
     throw new Error("Producto invalido");
   }
 
-  return await borrarProductoDefinitivo(productId);
+  const result = await borrarProductoDefinitivo(productId);
+
+  if (Number(result?.changes ?? 0) === 0) {
+    throw new Error("No se pudo borrar el producto desactivado");
+  }
+
+  return result;
 };
 
 export const obtenerDatosInicio = async () => {

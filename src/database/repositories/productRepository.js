@@ -263,8 +263,19 @@ export const borrarProductoDefinitivo = async (id) => {
 
     return result;
   } catch (error) {
-    console.log("Error borrando producto:", error);
-    throw error;
+    const message = String(error?.message ?? error).toLowerCase();
+
+    if (!message.includes("foreign key")) {
+      console.log("Error borrando producto:", error);
+      throw error;
+    }
+
+    const result = await db.runAsync(
+      `UPDATE productos SET activo = -1 WHERE id = ? AND activo = 0`,
+      [id],
+    );
+
+    return result;
   }
 };
 
