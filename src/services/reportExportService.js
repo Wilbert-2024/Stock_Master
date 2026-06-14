@@ -965,7 +965,7 @@ const crearHtmlReporte = ({ periodo, rango, reporte }) => {
           </div>
         </section>
 
-        <h2>Productos mas vendidos</h2>
+        <h2>Productos más vendidos</h2>
         <table>
           <thead>
             <tr>

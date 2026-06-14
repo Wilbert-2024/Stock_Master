@@ -82,6 +82,24 @@ export const initDatabase = async () => {
         FOREIGN KEY (producto_id) REFERENCES productos(id)
       );
 
+      CREATE TABLE IF NOT EXISTS movimientos_inventario (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        producto_id INTEGER NOT NULL,
+        tipo TEXT NOT NULL,
+        cantidad_anterior INTEGER NOT NULL,
+        cantidad_movida INTEGER NOT NULL,
+        cantidad_nueva INTEGER NOT NULL,
+        motivo TEXT NOT NULL,
+        origen TEXT NOT NULL,
+        referencia_id INTEGER,
+        responsable TEXT NOT NULL DEFAULT 'Sistema',
+        fecha TEXT NOT NULL,
+        FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha
+      ON movimientos_inventario(producto_id, fecha DESC);
+
       CREATE TABLE IF NOT EXISTS app_metadata (
         clave TEXT PRIMARY KEY,
         valor TEXT NOT NULL
@@ -200,6 +218,35 @@ export const initDatabase = async () => {
       SET categoria_id = NULL
       WHERE activo = -1
         AND categoria_id IS NOT NULL;
+
+      INSERT INTO movimientos_inventario (
+        producto_id,
+        tipo,
+        cantidad_anterior,
+        cantidad_movida,
+        cantidad_nueva,
+        motivo,
+        origen,
+        responsable,
+        fecha
+      )
+      SELECT
+        p.id,
+        CASE WHEN p.stock > 0 THEN 'entrada' ELSE 'ajuste' END,
+        0,
+        p.stock,
+        p.stock,
+        'Saldo inicial al habilitar historial',
+        'migracion',
+        'Sistema',
+        strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+      FROM productos p
+      WHERE p.activo != -1
+        AND NOT EXISTS (
+          SELECT 1
+          FROM movimientos_inventario mi
+          WHERE mi.producto_id = p.id
+        );
     `);
 
     console.log("Base de datos inicializada");

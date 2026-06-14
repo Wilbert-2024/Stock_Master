@@ -75,7 +75,7 @@ export default function ScannerScreen() {
 
       Alert.alert(
         "Producto no encontrado",
-        `No existe un producto activo con el codigo ${codigo}.`,
+        `No existe un producto activo con el código ${codigo}.`,
         [
           {
             style: "cancel",
@@ -120,12 +120,12 @@ export default function ScannerScreen() {
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.title}>Permiso de camara</Text>
+        <Text style={styles.title}>Permiso de cámara</Text>
         <Text style={styles.permissionText}>
-          StokMaster necesita acceso a la camara para escanear codigos de
+          StokMaster necesita acceso a la cámara para escanear códigos de
           barras.
         </Text>
-        <Button title="Permitir camara" onPress={requestPermission} />
+        <Button title="Permitir cámara" onPress={requestPermission} />
       </View>
     );
   }
@@ -142,7 +142,7 @@ export default function ScannerScreen() {
         onMountError={({ message }) => {
           Alert.alert(
             "Error",
-            message || "No se pudo iniciar la camara del escaner.",
+            message || "No se pudo iniciar la cámara del escáner.",
           );
         }}
         onBarcodeScanned={scanned ? undefined : manejarCodigo}
@@ -169,9 +169,9 @@ export default function ScannerScreen() {
         <View style={styles.scanBox} />
 
         <View style={styles.instructionsBox}>
-          <Text style={styles.instructionsTitle}>Escanear codigo</Text>
+          <Text style={styles.instructionsTitle}>Escanear código</Text>
           <Text style={styles.instructionsText}>
-            Alinea el codigo de barras dentro del recuadro.
+            Alinea el código de barras dentro del recuadro.
           </Text>
 
           {scanned ? (

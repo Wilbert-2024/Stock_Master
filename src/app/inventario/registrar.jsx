@@ -196,7 +196,7 @@ export default function RegistrarProductoScreen() {
     }
 
     if (!categoriaId) {
-      nextErrors.categoria = "Selecciona una categoria";
+      nextErrors.categoria = "Selecciona una categoría";
     }
 
     if (!precio.trim()) {
@@ -266,7 +266,7 @@ export default function RegistrarProductoScreen() {
         tipo_medida: tipoMedida,
       });
 
-      Alert.alert("Exito", "Producto guardado correctamente");
+      Alert.alert("Éxito", "Producto guardado correctamente");
       router.back();
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -302,7 +302,7 @@ export default function RegistrarProductoScreen() {
         onChangeText={setCodigoBarras}
       />
 
-      <Text style={[styles.label, { color: colors.text }]}>Categoria</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
       {cargandoCategorias ? (
         <View
           style={[
@@ -312,7 +312,7 @@ export default function RegistrarProductoScreen() {
         >
           <ActivityIndicator color="#003B95" />
           <Text style={[styles.categoryLoadingText, themedMutedText]}>
-            Cargando categorias...
+            Cargando categorías...
           </Text>
         </View>
       ) : (
@@ -356,7 +356,7 @@ export default function RegistrarProductoScreen() {
         style={styles.manageCategoriesButton}
         onPress={() => router.push("/categorias")}
       >
-        <Text style={styles.manageCategoriesText}>Gestionar categorias</Text>
+        <Text style={styles.manageCategoriesText}>Gestionar categorías</Text>
       </TouchableOpacity>
 
       <TextInput

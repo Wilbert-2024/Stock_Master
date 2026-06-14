@@ -58,10 +58,10 @@ export default function SettingsScreen() {
         <Image source={logoImage} style={styles.logo} />
         <View style={styles.headerTextBox}>
           <Text style={[styles.title, { color: colors.text }]}>
-            Configuracion
+            Configuración
           </Text>
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Ajustes y herramientas para mantener la app ordenada.
+            Ajustes y herramientas para mantener la aplicación ordenada.
           </Text>
         </View>
       </View>

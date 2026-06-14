@@ -27,7 +27,7 @@ export const crearVenta = async ({ carrito, metodo_pago, recibido }) => {
     const cantidadBase = Number(item.cantidad_base);
 
     if (!Number.isInteger(productoId) || productoId <= 0) {
-      throw new Error("Hay un producto invalido en la venta");
+      throw new Error("Hay un producto inválido en la venta");
     }
 
     if (!Number.isInteger(cantidadBase) || cantidadBase <= 0) {

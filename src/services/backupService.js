@@ -7,7 +7,19 @@ import db from "../database/connection/database";
 import { initDatabase } from "../database/migrations/initDatabase";
 
 const BACKUP_VERSION = 1;
-const TABLES = ["categorias", "productos", "ventas", "detalle_ventas"];
+const TABLES = [
+  "categorias",
+  "productos",
+  "ventas",
+  "detalle_ventas",
+  "movimientos_inventario",
+];
+const REQUIRED_BACKUP_TABLES = [
+  "categorias",
+  "productos",
+  "ventas",
+  "detalle_ventas",
+];
 
 const formatBackupDate = () => {
   const now = new Date();
@@ -99,6 +111,7 @@ export const crearRespaldo = async () => {
     resumen: {
       categorias: data.categorias.length,
       detalleVentas: data.detalle_ventas.length,
+      movimientos: data.movimientos_inventario.length,
       productos: data.productos.length,
       ventas: data.ventas.length,
     },
@@ -126,22 +139,27 @@ export const restaurarRespaldo = async () => {
   try {
     backup = JSON.parse(content);
   } catch {
-    throw new Error("El archivo seleccionado no tiene formato JSON valido");
+    throw new Error("El archivo seleccionado no tiene un formato JSON válido");
   }
 
   if (backup.app !== "StokMaster" || backup.version !== BACKUP_VERSION) {
-    throw new Error("El archivo seleccionado no es un respaldo valido de StokMaster");
+    throw new Error("El archivo seleccionado no es un respaldo válido de StokMaster");
   }
 
-  for (const table of TABLES) {
+  for (const table of REQUIRED_BACKUP_TABLES) {
     if (!Array.isArray(backup.data?.[table])) {
       throw new Error("El respaldo esta incompleto o danado");
     }
   }
 
+  const movimientos = Array.isArray(backup.data?.movimientos_inventario)
+    ? backup.data.movimientos_inventario
+    : [];
+
   try {
     await db.execAsync("BEGIN TRANSACTION;");
     await db.execAsync(`
+      DELETE FROM movimientos_inventario;
       DELETE FROM detalle_ventas;
       DELETE FROM ventas;
       DELETE FROM productos;
@@ -152,8 +170,10 @@ export const restaurarRespaldo = async () => {
     await insertRows("productos", backup.data.productos);
     await insertRows("ventas", backup.data.ventas);
     await insertRows("detalle_ventas", backup.data.detalle_ventas);
+    await insertRows("movimientos_inventario", movimientos);
 
     await db.execAsync("COMMIT;");
+    await initDatabase();
   } catch (error) {
     await db.execAsync("ROLLBACK;");
     throw error;
@@ -164,6 +184,7 @@ export const restaurarRespaldo = async () => {
     resumen: {
       categorias: backup.data.categorias.length,
       detalleVentas: backup.data.detalle_ventas.length,
+      movimientos: movimientos.length,
       productos: backup.data.productos.length,
       ventas: backup.data.ventas.length,
     },

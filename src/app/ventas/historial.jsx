@@ -56,7 +56,7 @@ export default function SalesHistoryScreen() {
 
       <View style={[styles.summaryCard, { backgroundColor: colors.header }]}>
         <View>
-          <Text style={styles.summaryLabel}>Total historico</Text>
+          <Text style={styles.summaryLabel}>Total histórico</Text>
           <Text style={styles.summaryTotal}>{formatCurrency(resumen.total)}</Text>
         </View>
 
@@ -89,7 +89,7 @@ export default function SalesHistoryScreen() {
                 No hay ventas registradas
               </Text>
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                Las ventas guardadas apareceran aqui.
+                Las ventas guardadas aparecerán aquí.
               </Text>
             </View>
           }
@@ -119,7 +119,7 @@ export default function SalesHistoryScreen() {
                   {formatLocalSaleDateTime(item.fecha)}
                 </Text>
                 <Text style={[styles.saleMeta, { color: colors.primary }]}>
-                  {item.cantidad_productos} unidades minimas
+                  {item.cantidad_productos} unidades mínimas
                 </Text>
               </View>
 

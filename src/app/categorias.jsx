@@ -53,11 +53,11 @@ export default function CategoriesScreen() {
       setNombre("");
       setDescripcion("");
       await cargarCategorias();
-      Alert.alert("Exito", "Categoria guardada correctamente");
+      Alert.alert("Éxito", "Categoría guardada correctamente");
     } catch (error) {
       const message =
         error.message?.includes("UNIQUE") || error.message?.includes("unique")
-          ? "Ya existe una categoria con ese nombre"
+          ? "Ya existe una categoría con ese nombre"
           : error.message;
 
       Alert.alert("Error", message);
@@ -73,15 +73,15 @@ export default function CategoriesScreen() {
 
     if (totalAsignados > 0) {
       Alert.alert(
-        "Categoria con productos",
-        "No se puede eliminar porque tiene productos asignados. Primero cambia esos productos a otra categoria o eliminalos definitivamente.",
+        "Categoría con productos",
+        "No se puede eliminar porque tiene productos asignados. Primero cambia esos productos a otra categoría o elimínalos definitivamente.",
       );
       return;
     }
 
     Alert.alert(
-      "Eliminar categoria",
-      `Quieres eliminar "${categoria.nombre}"? Esta accion no se puede deshacer.`,
+      "Eliminar categoría",
+      `¿Quieres eliminar "${categoria.nombre}"? Esta acción no se puede deshacer.`,
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -92,7 +92,7 @@ export default function CategoriesScreen() {
               setEliminandoId(categoria.id);
               await eliminarCategoria(categoria.id);
               await cargarCategorias();
-              Alert.alert("Listo", "Categoria eliminada correctamente");
+              Alert.alert("Listo", "Categoría eliminada correctamente");
             } catch (error) {
               Alert.alert("Error", error.message);
             } finally {
@@ -106,11 +106,11 @@ export default function CategoriesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Categorias</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Categorías</Text>
 
       <View style={[styles.form, { backgroundColor: colors.card }]}>
         <TextInput
-          placeholder="Nombre de la categoria"
+          placeholder="Nombre de la categoría"
           placeholderTextColor={colors.textMuted}
           style={[
             styles.input,
@@ -138,7 +138,7 @@ export default function CategoriesScreen() {
         >
           <Ionicons name="add-circle-outline" size={22} color="#fff" />
           <Text style={styles.saveButtonText}>
-            {guardando ? "Guardando..." : "Agregar categoria"}
+            {guardando ? "Guardando..." : "Agregar categoría"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -147,7 +147,7 @@ export default function CategoriesScreen() {
         <View style={[styles.loadingBox, { backgroundColor: colors.card }]}>
           <ActivityIndicator color="#003B95" />
           <Text style={[styles.loadingText, { color: colors.textMuted }]}>
-            Cargando categorias...
+            Cargando categorías...
           </Text>
         </View>
       ) : (

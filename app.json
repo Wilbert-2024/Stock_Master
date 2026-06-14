@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Proyecto_StokMaster",
-    "slug": "Proyecto_StokMaster",
+    "name": "StokMaster",
+    "slug": "stokmaster",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "stokmaster",
@@ -34,7 +34,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Permitir que StokMaster use la camara para escanear codigos de barras"
+          "cameraPermission": "Permitir que StokMaster use la cámara para escanear códigos de barras",
+          "recordAudioAndroid": false
         }
       ]
     ]

@@ -69,7 +69,7 @@ export default function DisabledProductsScreen() {
   const confirmarReactivar = (producto) => {
     Alert.alert(
       "Reactivar producto",
-      `${producto.nombre} volvera a aparecer en inventario y podra venderse nuevamente.`,
+      `${producto.nombre} volverá a aparecer en inventario y podrá venderse nuevamente.`,
       [
         { style: "cancel", text: "Cancelar" },
         {
@@ -91,7 +91,7 @@ export default function DisabledProductsScreen() {
   const confirmarBorrado = (producto) => {
     Alert.alert(
       "Borrar definitivamente",
-      `Esta accion eliminara ${producto.nombre} de forma permanente. No podras recuperarlo desde productos desactivados.`,
+      `Esta acción eliminará ${producto.nombre} de forma permanente. No podrás recuperarlo desde productos desactivados.`,
       [
         { style: "cancel", text: "Cancelar" },
         {
@@ -154,7 +154,7 @@ export default function DisabledProductsScreen() {
             <Text style={[styles.capacityText, { color: colors.textMuted }]}>
               {capacidad.lleno
                 ? "Borra definitivamente o reactiva un producto antes de desactivar otro."
-                : `Puedes almacenar ${capacidad.disponibles} producto(s) desactivado(s) mas.`}
+                : `Puedes almacenar ${capacidad.disponibles} producto(s) desactivado(s) más.`}
             </Text>
           </View>
         </View>
@@ -177,8 +177,8 @@ export default function DisabledProductsScreen() {
           color={colors.primary}
         />
         <Text style={[styles.infoText, { color: colors.text }]}>
-          Estos productos no aparecen en inventario ni ventas. Reactivalos para
-          usarlos otra vez o borralos para liberar espacio.
+          Estos productos no aparecen en inventario ni ventas. Reactívalos para
+          usarlos otra vez o bórralos para liberar espacio.
         </Text>
       </View>
 
@@ -205,7 +205,7 @@ export default function DisabledProductsScreen() {
                 No hay productos desactivados
               </Text>
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                Cuando desactives un producto aparecera aqui.
+                Cuando desactives un producto aparecerá aquí.
               </Text>
             </View>
           }

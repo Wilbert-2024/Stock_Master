@@ -209,7 +209,7 @@ export default function HomeScreen() {
               Bienvenido
             </Text>
             <Text style={[styles.welcomeText, { color: colors.success }]}>
-              Administra tu inventario de pulperia de forma facil y sin
+              Administra tu inventario de pulpería de forma fácil y sin
               internet.
             </Text>
           </View>
@@ -250,7 +250,7 @@ export default function HomeScreen() {
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          Ultimas alertas
+          Últimas alertas
         </Text>
 
         {cargando ? (
@@ -269,7 +269,7 @@ export default function HomeScreen() {
                 Sin alertas por ahora
               </Text>
               <Text style={[styles.alertDescription, { color: colors.textMuted }]}>
-                Cuando registres productos apareceran aqui.
+                Cuando registres productos aparecerán aquí.
               </Text>
             </View>
           </View>

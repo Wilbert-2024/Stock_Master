@@ -19,8 +19,25 @@ export const insertarVenta = async ({
     );
 
     const ventaId = ventaResult.lastInsertRowId;
+    const movimientosPorProducto = {};
 
     for (const item of detalle) {
+      const productoId = Number(item.producto_id);
+
+      if (!movimientosPorProducto[productoId]) {
+        const producto = await db.getFirstAsync(
+          `SELECT stock, unidad_base FROM productos WHERE id = ? AND activo = 1`,
+          [productoId],
+        );
+
+        movimientosPorProducto[productoId] = {
+          cantidad: 0,
+          stockAnterior: Number(producto?.stock ?? 0),
+        };
+      }
+
+      movimientosPorProducto[productoId].cantidad += Number(item.cantidad_base);
+
       await db.runAsync(
         `INSERT INTO detalle_ventas (
           venta_id,
@@ -58,6 +75,39 @@ export const insertarVenta = async ({
          SET stock = stock - ?
          WHERE id = ? AND activo = 1`,
         [item.cantidad_base, item.producto_id],
+      );
+    }
+
+    for (const [productoId, movimiento] of Object.entries(
+      movimientosPorProducto,
+    )) {
+      const cantidadNueva = movimiento.stockAnterior - movimiento.cantidad;
+
+      await db.runAsync(
+        `INSERT INTO movimientos_inventario (
+          producto_id,
+          tipo,
+          cantidad_anterior,
+          cantidad_movida,
+          cantidad_nueva,
+          motivo,
+          origen,
+          referencia_id,
+          responsable,
+          fecha
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          Number(productoId),
+          "salida",
+          movimiento.stockAnterior,
+          -movimiento.cantidad,
+          cantidadNueva,
+          `Venta #${ventaId}`,
+          "venta",
+          ventaId,
+          "Sistema",
+          fecha,
+        ],
       );
     }
 

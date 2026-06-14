@@ -45,13 +45,13 @@ const prepararProducto = async (producto) => {
   }
 
   if (!Number.isInteger(categoria_id) || categoria_id <= 0) {
-    throw new Error("Selecciona una categoria valida");
+    throw new Error("Selecciona una categoría válida");
   }
 
   const categoria = await obtenerCategoriaPorId(categoria_id);
 
   if (!categoria) {
-    throw new Error("La categoria seleccionada no existe");
+    throw new Error("La categoría seleccionada no existe");
   }
 
   if (!Number.isFinite(precio) || precio <= 0) {
@@ -63,7 +63,7 @@ const prepararProducto = async (producto) => {
   }
 
   if (!measurementType) {
-    throw new Error("Selecciona un tipo de medida valido");
+    throw new Error("Selecciona un tipo de medida válido");
   }
 
   if (!presentation) {
@@ -92,7 +92,7 @@ const prepararProducto = async (producto) => {
       productoConCodigo &&
       (!producto.id || Number(producto.id) !== Number(productoConCodigo.id))
     ) {
-      throw new Error("Ya existe un producto activo con ese codigo de barras");
+      throw new Error("Ya existe un producto activo con ese código de barras");
     }
   }
 
@@ -134,7 +134,7 @@ export const obtenerProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const producto = await obtenerProductoPorId(productId);
@@ -152,7 +152,7 @@ export const editarProducto = async (id, producto) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const productoPreparado = await prepararProducto({ ...producto, id: productId });
@@ -166,7 +166,7 @@ export const eliminarProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const totalDesactivados = await contarProductosDesactivados();
@@ -191,7 +191,7 @@ export const buscarProductoPorCodigo = async (codigo) => {
   const codigoNormalizado = codigo?.trim();
 
   if (!codigoNormalizado) {
-    throw new Error("Codigo de barras invalido");
+    throw new Error("Código de barras inválido");
   }
 
   return await obtenerProductoPorCodigo(codigoNormalizado);
@@ -208,7 +208,7 @@ export const restaurarProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   return await reactivarProducto(productId);
@@ -220,7 +220,7 @@ export const borrarProductoDesactivado = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const result = await borrarProductoDefinitivo(productId);

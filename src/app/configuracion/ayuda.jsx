@@ -14,7 +14,7 @@ const guides = [
     icon: "cube-outline",
     steps: [
       "Entra a Inventario y toca Agregar producto.",
-      "Selecciona categoria, medida, presentacion, precio y stock.",
+      "Selecciona categoría, medida, presentación, precio y existencias.",
       "Guarda el producto para que aparezca activo en inventario.",
     ],
     title: "Registrar productos",
@@ -23,9 +23,9 @@ const guides = [
     color: "#0F8A45",
     icon: "barcode-outline",
     steps: [
-      "Usa Escanear para leer el codigo de barras.",
+      "Usa Escanear para leer el código de barras.",
       "Si existe, la app abre el producto o lo agrega a la venta.",
-      "Si no existe, puedes registrarlo con el codigo ya cargado.",
+      "Si no existe, puedes registrarlo con el código ya cargado.",
     ],
     title: "Codigos de barras",
   },
@@ -45,7 +45,7 @@ const guides = [
     steps: [
       "En Ventas toca Nueva venta.",
       "Agrega productos manualmente o con el escaner.",
-      "Selecciona metodo de pago y guarda para descontar stock.",
+      "Selecciona el método de pago y guarda para descontar existencias.",
     ],
     title: "Registrar ventas",
   },
@@ -63,7 +63,7 @@ const guides = [
     color: "#7C3AED",
     icon: "cloud-upload-outline",
     steps: [
-      "En Configuracion entra a Respaldo de datos.",
+      "En Configuración entra a Respaldo de datos.",
       "Crea un respaldo y guardalo fuera del telefono.",
       "Restaura solo archivos generados por StokMaster.",
     ],
@@ -83,7 +83,7 @@ export default function HelpScreen() {
     >
       <Text style={[styles.title, { color: colors.text }]}>Ayuda</Text>
       <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-        Guia rapida para usar las funciones principales de StokMaster.
+        Guía rápida para usar las funciones principales de StokMaster.
       </Text>
 
       {guides.map((guide) => (

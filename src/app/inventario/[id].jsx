@@ -1,4 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -213,7 +214,7 @@ export default function ProductDetailScreen() {
     }
 
     if (!form.categoria_id) {
-      nextErrors.categoria_id = "Selecciona una categoria";
+      nextErrors.categoria_id = "Selecciona una categoría";
     }
 
     if (!form.precio.trim()) {
@@ -293,7 +294,7 @@ export default function ProductDetailScreen() {
       await cargarProducto();
       setEditando(false);
       setErrores({});
-      Alert.alert("Exito", "Producto actualizado correctamente");
+      Alert.alert("Éxito", "Producto actualizado correctamente");
     } catch (error) {
       Alert.alert("Error", error.message);
     } finally {
@@ -380,7 +381,7 @@ export default function ProductDetailScreen() {
             onChangeText={(value) => actualizarCampo("codigo_barras", value)}
           />
 
-          <Text style={[styles.label, { color: colors.text }]}>Categoria</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Categoría</Text>
           <View
             onLayout={registrarPosicion("categoria_id")}
             style={[
@@ -426,7 +427,7 @@ export default function ProductDetailScreen() {
             onPress={() => router.push("/categorias")}
           >
             <Text style={[styles.manageCategoriesText, { color: colors.primary }]}>
-              Gestionar categorias
+              Gestionar categorías
             </Text>
           </TouchableOpacity>
 
@@ -693,7 +694,7 @@ export default function ProductDetailScreen() {
           <View style={[styles.detailCard, { backgroundColor: colors.card }]}>
             <DetailRow
               label="Codigo de barras"
-              value={producto.codigo_barras || "Sin codigo"}
+              value={producto.codigo_barras || "Sin código"}
             />
             <DetailRow
               label="Precio por presentacion"
@@ -732,6 +733,19 @@ export default function ProductDetailScreen() {
               value={producto.fecha_vencimiento || "Sin fecha"}
             />
           </View>
+
+          <TouchableOpacity
+            style={[
+              styles.movementsButton,
+              { backgroundColor: colors.card, borderColor: colors.primary },
+            ]}
+            onPress={() => router.push(`/inventario/movimientos/${producto.id}`)}
+          >
+            <Ionicons name="swap-vertical-outline" size={21} color={colors.primary} />
+            <Text style={[styles.movementsButtonText, { color: colors.primary }]}>
+              Movimientos
+            </Text>
+          </TouchableOpacity>
 
           <Button title="Editar producto" onPress={() => setEditando(true)} />
           <View style={styles.spacer} />
@@ -894,6 +908,21 @@ const styles = StyleSheet.create({
     color: "#003B95",
     fontSize: 14,
     fontWeight: "700",
+  },
+  movementsButton: {
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 12,
+    minHeight: 48,
+    paddingHorizontal: 14,
+  },
+  movementsButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+    marginLeft: 7,
   },
   optionButton: {
     borderColor: "#CBD5E1",
