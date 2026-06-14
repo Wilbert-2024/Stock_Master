@@ -39,6 +39,8 @@ export const initDatabase = async () => {
         categoria_id INTEGER,
         precio REAL NOT NULL,
         precio_base REAL NOT NULL DEFAULT 0,
+        precio_compra REAL NOT NULL DEFAULT 0,
+        precio_compra_base REAL NOT NULL DEFAULT 0,
         stock INTEGER NOT NULL,
         stock_minimo INTEGER NOT NULL DEFAULT 5,
         tipo_medida TEXT NOT NULL DEFAULT 'unidad',
@@ -72,10 +74,31 @@ export const initDatabase = async () => {
         cantidad_base INTEGER NOT NULL,
         cantidad_presentaciones REAL NOT NULL,
         precio_unitario REAL NOT NULL,
+        costo_unitario REAL NOT NULL DEFAULT 0,
+        costo_total REAL NOT NULL DEFAULT 0,
+        ganancia REAL NOT NULL DEFAULT 0,
         subtotal REAL NOT NULL,
         FOREIGN KEY (venta_id) REFERENCES ventas(id),
         FOREIGN KEY (producto_id) REFERENCES productos(id)
       );
+
+      CREATE TABLE IF NOT EXISTS movimientos_inventario (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        producto_id INTEGER NOT NULL,
+        tipo TEXT NOT NULL,
+        cantidad_anterior INTEGER NOT NULL,
+        cantidad_movida INTEGER NOT NULL,
+        cantidad_nueva INTEGER NOT NULL,
+        motivo TEXT NOT NULL,
+        origen TEXT NOT NULL,
+        referencia_id INTEGER,
+        responsable TEXT NOT NULL DEFAULT 'Sistema',
+        fecha TEXT NOT NULL,
+        FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_movimientos_producto_fecha
+      ON movimientos_inventario(producto_id, fecha DESC);
 
       CREATE TABLE IF NOT EXISTS app_metadata (
         clave TEXT PRIMARY KEY,
@@ -120,6 +143,16 @@ export const initDatabase = async () => {
     await ensureColumn("productos", "precio_base", "precio_base REAL NOT NULL DEFAULT 0");
     await ensureColumn(
       "productos",
+      "precio_compra",
+      "precio_compra REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "productos",
+      "precio_compra_base",
+      "precio_compra_base REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "productos",
       "tipo_medida",
       "tipo_medida TEXT NOT NULL DEFAULT 'unidad'",
     );
@@ -150,11 +183,70 @@ export const initDatabase = async () => {
       "fecha_registro TEXT",
     );
     await ensureColumn("productos", "activo", "activo INTEGER NOT NULL DEFAULT 1");
+    await ensureColumn(
+      "detalle_ventas",
+      "costo_unitario",
+      "costo_unitario REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "detalle_ventas",
+      "costo_total",
+      "costo_total REAL NOT NULL DEFAULT 0",
+    );
+    await ensureColumn(
+      "detalle_ventas",
+      "ganancia",
+      "ganancia REAL NOT NULL DEFAULT 0",
+    );
 
     await db.execAsync(`
       UPDATE productos
       SET precio_base = precio / cantidad_por_presentacion
       WHERE precio_base = 0 AND cantidad_por_presentacion > 0;
+
+      UPDATE productos
+      SET precio_compra_base = precio_compra / cantidad_por_presentacion
+      WHERE precio_compra > 0
+        AND precio_compra_base = 0
+        AND cantidad_por_presentacion > 0;
+
+      UPDATE detalle_ventas
+      SET ganancia = subtotal - costo_total
+      WHERE ganancia = 0 AND costo_total > 0;
+
+      UPDATE productos
+      SET categoria_id = NULL
+      WHERE activo = -1
+        AND categoria_id IS NOT NULL;
+
+      INSERT INTO movimientos_inventario (
+        producto_id,
+        tipo,
+        cantidad_anterior,
+        cantidad_movida,
+        cantidad_nueva,
+        motivo,
+        origen,
+        responsable,
+        fecha
+      )
+      SELECT
+        p.id,
+        CASE WHEN p.stock > 0 THEN 'entrada' ELSE 'ajuste' END,
+        0,
+        p.stock,
+        p.stock,
+        'Saldo inicial al habilitar historial',
+        'migracion',
+        'Sistema',
+        strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+      FROM productos p
+      WHERE p.activo != -1
+        AND NOT EXISTS (
+          SELECT 1
+          FROM movimientos_inventario mi
+          WHERE mi.producto_id = p.id
+        );
     `);
 
     console.log("Base de datos inicializada");

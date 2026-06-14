@@ -8,6 +8,7 @@ import {
   obtenerVentaPorId,
   obtenerVentas,
 } from "../database/repositories/salesRepository";
+import { formatUtcSaleTimestamp } from "../utils/saleDateTime";
 
 export const crearVenta = async ({ carrito, metodo_pago, recibido }) => {
   await initDatabase();
@@ -19,13 +20,14 @@ export const crearVenta = async ({ carrito, metodo_pago, recibido }) => {
   const metodoPago = metodo_pago || "efectivo";
   const recibidoNumber = Number(recibido || 0);
   const acumuladoPorProducto = {};
+  const productosPorId = {};
 
   for (const item of carrito) {
     const productoId = Number(item.producto_id);
     const cantidadBase = Number(item.cantidad_base);
 
     if (!Number.isInteger(productoId) || productoId <= 0) {
-      throw new Error("Hay un producto invalido en la venta");
+      throw new Error("Hay un producto inválido en la venta");
     }
 
     if (!Number.isInteger(cantidadBase) || cantidadBase <= 0) {
@@ -46,18 +48,39 @@ export const crearVenta = async ({ carrito, metodo_pago, recibido }) => {
     if (producto.stock < cantidadBase) {
       throw new Error(`Stock insuficiente para ${producto.nombre}`);
     }
+
+    productosPorId[Number(productoId)] = producto;
   }
 
-  const detalle = carrito.map((item) => ({
-    cantidad_base: Number(item.cantidad_base),
-    cantidad_presentaciones: Number(item.cantidad_presentaciones),
-    precio_unitario: Number(item.precio_unitario),
-    producto_id: Number(item.producto_id),
-    producto_nombre: item.producto_nombre,
-    presentacion_nombre: item.presentacion_nombre,
-    subtotal: Number(item.subtotal),
-    unidad_base: item.unidad_base,
-  }));
+  const detalle = carrito.map((item) => {
+    const productoId = Number(item.producto_id);
+    const producto = productosPorId[productoId];
+    const cantidadBase = Number(item.cantidad_base);
+    const cantidadPresentaciones = Number(item.cantidad_presentaciones);
+    const unidadesPorVenta =
+      cantidadPresentaciones > 0 ? cantidadBase / cantidadPresentaciones : 1;
+    const esPresentacionCompleta =
+      Number(producto.cantidad_por_presentacion ?? 1) === unidadesPorVenta;
+    const costoUnitario = esPresentacionCompleta
+      ? Number(producto.precio_compra ?? 0)
+      : Number(producto.precio_compra_base ?? 0);
+    const subtotal = Number(item.subtotal);
+    const costoTotal = costoUnitario * cantidadPresentaciones;
+
+    return {
+      cantidad_base: cantidadBase,
+      cantidad_presentaciones: cantidadPresentaciones,
+      costo_total: costoTotal,
+      costo_unitario: costoUnitario,
+      ganancia: subtotal - costoTotal,
+      precio_unitario: Number(item.precio_unitario),
+      producto_id: productoId,
+      producto_nombre: item.producto_nombre,
+      presentacion_nombre: item.presentacion_nombre,
+      subtotal,
+      unidad_base: item.unidad_base,
+    };
+  });
   const total = detalle.reduce((sum, item) => sum + item.subtotal, 0);
   const cantidad_productos = detalle.reduce(
     (sum, item) => sum + item.cantidad_base,
@@ -72,6 +95,7 @@ export const crearVenta = async ({ carrito, metodo_pago, recibido }) => {
     cambio: metodoPago === "efectivo" ? recibidoNumber - total : 0,
     cantidad_productos,
     detalle,
+    fecha: formatUtcSaleTimestamp(),
     metodo_pago: metodoPago,
     recibido: metodoPago === "efectivo" ? recibidoNumber : total,
     total,

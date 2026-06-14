@@ -40,6 +40,10 @@ function ThemedLayout() {
           />
           <Stack.Screen name="inventario/[id]" options={{ title: "Producto" }} />
           <Stack.Screen
+            name="inventario/movimientos/[id]"
+            options={{ title: "Movimientos de inventario" }}
+          />
+          <Stack.Screen
             name="inventario/desactivados"
             options={{ title: "Productos desactivados" }}
           />
@@ -50,13 +54,13 @@ function ThemedLayout() {
             options={{ title: "Historial de ventas" }}
           />
           <Stack.Screen name="ventas/[id]" options={{ title: "Detalle de venta" }} />
-          <Stack.Screen name="escaner" options={{ title: "Escanear codigo" }} />
+          <Stack.Screen name="escaner" options={{ title: "Escanear código" }} />
           <Stack.Screen name="alertas" options={{ title: "Alertas" }} />
           <Stack.Screen name="reportes" options={{ title: "Reportes" }} />
-          <Stack.Screen name="categorias" options={{ title: "Categorias" }} />
+          <Stack.Screen name="categorias" options={{ title: "Categorías" }} />
           <Stack.Screen
             name="configuracion/index"
-            options={{ title: "Configuracion" }}
+            options={{ title: "Configuración" }}
           />
           <Stack.Screen
             name="configuracion/unidades"

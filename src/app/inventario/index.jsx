@@ -23,9 +23,9 @@ const FILTERS = [
 ];
 const SEARCH_MODES = [
   { id: "nombre", label: "Nombre", placeholder: "Buscar por nombre" },
-  { id: "codigo", label: "Codigo", placeholder: "Buscar por codigo de barras" },
+  { id: "codigo", label: "Código", placeholder: "Buscar por código de barras" },
   { id: "precio", label: "Precio", placeholder: "Buscar por precio" },
-  { id: "categoria", label: "Categoria", placeholder: "Buscar por categoria" },
+  { id: "categoria", label: "Categoría", placeholder: "Buscar por categoría" },
 ];
 
 export default function InventarioScreen() {

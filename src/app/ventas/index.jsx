@@ -43,7 +43,7 @@ export default function SalesScreen() {
           {resumen.productosVendidos}
         </Text>
         <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>
-          unidades minimas vendidas hoy
+          unidades mínimas vendidas hoy
         </Text>
       </View>
 

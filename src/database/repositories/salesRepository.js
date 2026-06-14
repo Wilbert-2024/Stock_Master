@@ -4,6 +4,7 @@ export const insertarVenta = async ({
   cambio,
   cantidad_productos,
   detalle,
+  fecha,
   metodo_pago,
   recibido,
   total,
@@ -12,14 +13,31 @@ export const insertarVenta = async ({
     await db.execAsync("BEGIN TRANSACTION;");
 
     const ventaResult = await db.runAsync(
-      `INSERT INTO ventas (total, cantidad_productos, metodo_pago, recibido, cambio)
-       VALUES (?, ?, ?, ?, ?)`,
-      [total, cantidad_productos, metodo_pago, recibido, cambio],
+      `INSERT INTO ventas (fecha, total, cantidad_productos, metodo_pago, recibido, cambio)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [fecha, total, cantidad_productos, metodo_pago, recibido, cambio],
     );
 
     const ventaId = ventaResult.lastInsertRowId;
+    const movimientosPorProducto = {};
 
     for (const item of detalle) {
+      const productoId = Number(item.producto_id);
+
+      if (!movimientosPorProducto[productoId]) {
+        const producto = await db.getFirstAsync(
+          `SELECT stock, unidad_base FROM productos WHERE id = ? AND activo = 1`,
+          [productoId],
+        );
+
+        movimientosPorProducto[productoId] = {
+          cantidad: 0,
+          stockAnterior: Number(producto?.stock ?? 0),
+        };
+      }
+
+      movimientosPorProducto[productoId].cantidad += Number(item.cantidad_base);
+
       await db.runAsync(
         `INSERT INTO detalle_ventas (
           venta_id,
@@ -30,9 +48,12 @@ export const insertarVenta = async ({
           cantidad_base,
           cantidad_presentaciones,
           precio_unitario,
+          costo_unitario,
+          costo_total,
+          ganancia,
           subtotal
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           ventaId,
           item.producto_id,
@@ -42,6 +63,9 @@ export const insertarVenta = async ({
           item.cantidad_base,
           item.cantidad_presentaciones,
           item.precio_unitario,
+          item.costo_unitario,
+          item.costo_total,
+          item.ganancia,
           item.subtotal,
         ],
       );
@@ -51,6 +75,39 @@ export const insertarVenta = async ({
          SET stock = stock - ?
          WHERE id = ? AND activo = 1`,
         [item.cantidad_base, item.producto_id],
+      );
+    }
+
+    for (const [productoId, movimiento] of Object.entries(
+      movimientosPorProducto,
+    )) {
+      const cantidadNueva = movimiento.stockAnterior - movimiento.cantidad;
+
+      await db.runAsync(
+        `INSERT INTO movimientos_inventario (
+          producto_id,
+          tipo,
+          cantidad_anterior,
+          cantidad_movida,
+          cantidad_nueva,
+          motivo,
+          origen,
+          referencia_id,
+          responsable,
+          fecha
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          Number(productoId),
+          "salida",
+          movimiento.stockAnterior,
+          -movimiento.cantidad,
+          cantidadNueva,
+          `Venta #${ventaId}`,
+          "venta",
+          ventaId,
+          "Sistema",
+          fecha,
+        ],
       );
     }
 
@@ -113,7 +170,7 @@ export const obtenerResumenVentas = async () => {
         COALESCE(SUM(total), 0) AS montoTotal,
         COALESCE(SUM(cantidad_productos), 0) AS productosVendidos
       FROM ventas
-      WHERE date(fecha) = date('now', 'localtime')
+      WHERE date(fecha, 'localtime') = date('now', 'localtime')
     `);
 
     return {
@@ -138,18 +195,24 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
         SELECT
           COUNT(*) AS totalVentas,
           COALESCE(SUM(total), 0) AS montoTotal,
-          COALESCE(SUM(cantidad_productos), 0) AS productosVendidos
+          COALESCE(SUM(cantidad_productos), 0) AS productosVendidos,
+          COALESCE((
+            SELECT SUM(dv.ganancia)
+            FROM detalle_ventas dv
+            INNER JOIN ventas v2 ON v2.id = dv.venta_id
+            WHERE date(v2.fecha, 'localtime') BETWEEN date(?) AND date(?)
+          ), 0) AS gananciaTotal
         FROM ventas
-        WHERE date(fecha) BETWEEN date(?) AND date(?)
+        WHERE date(fecha, 'localtime') BETWEEN date(?) AND date(?)
       `,
-      [fechaInicio, fechaFin],
+      [fechaInicio, fechaFin, fechaInicio, fechaFin],
     );
 
     const ventas = await db.getAllAsync(
       `
         SELECT *
         FROM ventas
-        WHERE date(fecha) BETWEEN date(?) AND date(?)
+        WHERE date(fecha, 'localtime') BETWEEN date(?) AND date(?)
         ORDER BY id DESC
       `,
       [fechaInicio, fechaFin],
@@ -161,7 +224,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
           dv.*
         FROM detalle_ventas dv
         INNER JOIN ventas v ON v.id = dv.venta_id
-        WHERE date(v.fecha) BETWEEN date(?) AND date(?)
+        WHERE date(v.fecha, 'localtime') BETWEEN date(?) AND date(?)
         ORDER BY dv.venta_id DESC, dv.id ASC
       `,
       [fechaInicio, fechaFin],
@@ -181,10 +244,11 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
           producto_nombre,
           unidad_base,
           SUM(cantidad_base) AS cantidad_base,
-          SUM(subtotal) AS total_vendido
+          SUM(subtotal) AS total_vendido,
+          SUM(ganancia) AS ganancia_total
         FROM detalle_ventas dv
         INNER JOIN ventas v ON v.id = dv.venta_id
-        WHERE date(v.fecha) BETWEEN date(?) AND date(?)
+        WHERE date(v.fecha, 'localtime') BETWEEN date(?) AND date(?)
         GROUP BY producto_id, producto_nombre, unidad_base
         ORDER BY cantidad_base DESC, total_vendido DESC
       `,
@@ -199,6 +263,7 @@ export const obtenerReporteVentasPorRango = async (fechaInicio, fechaFin) => {
       },
       resumen: {
         montoTotal: Number(resumen?.montoTotal ?? 0),
+        gananciaTotal: Number(resumen?.gananciaTotal ?? 0),
         productosVendidos: Number(resumen?.productosVendidos ?? 0),
         totalVentas: Number(resumen?.totalVentas ?? 0),
       },

@@ -32,6 +32,7 @@ export const obtenerCategorias = async () => {
           SELECT COUNT(*)
           FROM productos p
           WHERE p.categoria_id = c.id
+            AND p.activo != -1
         ) AS total_productos_asignados
       FROM categorias c
       WHERE c.activo = 1
@@ -50,7 +51,8 @@ export const contarProductosAsignadosCategoria = async (id) => {
     const result = await db.getFirstAsync(
       `SELECT COUNT(*) AS total
        FROM productos
-       WHERE categoria_id = ?`,
+       WHERE categoria_id = ?
+         AND activo != -1`,
       [id],
     );
 
@@ -70,6 +72,7 @@ export const eliminarCategoriaPorId = async (id) => {
            SELECT 1
            FROM productos
            WHERE categoria_id = ?
+             AND activo != -1
          )`,
       [id, id],
     );

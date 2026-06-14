@@ -35,7 +35,7 @@ export default function BackupScreen() {
       });
       Alert.alert(
         "Respaldo generado",
-        "El archivo se guardo correctamente en la carpeta seleccionada.",
+        "El archivo se guardó correctamente en la carpeta seleccionada.",
       );
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -47,7 +47,7 @@ export default function BackupScreen() {
   const confirmarRestauracion = () => {
     Alert.alert(
       "Restaurar respaldo",
-      "Esto reemplazara los productos, categorias y ventas actuales por los datos del archivo seleccionado.",
+      "Esto reemplazará los productos, categorías y ventas actuales por los datos del archivo seleccionado.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -105,7 +105,7 @@ export default function BackupScreen() {
             Tus datos siguen en el telefono
           </Text>
           <Text style={[styles.infoText, { color: colors.textMuted }]}>
-            Crea un respaldo para guardar una copia de productos, categorias y
+            Crea un respaldo para guardar una copia de productos, categorías y
             ventas. Luego puedes restaurarlo si cambias de telefono o borras la
             app.
           </Text>
@@ -167,12 +167,16 @@ export default function BackupScreen() {
             {ultimoResultado.archivo}
           </Text>
           <View style={styles.summaryGrid}>
-            <SummaryItem label="Categorias" value={ultimoResultado.resumen.categorias} />
+            <SummaryItem label="Categorías" value={ultimoResultado.resumen.categorias} />
             <SummaryItem label="Productos" value={ultimoResultado.resumen.productos} />
             <SummaryItem label="Ventas" value={ultimoResultado.resumen.ventas} />
             <SummaryItem
               label="Detalles"
               value={ultimoResultado.resumen.detalleVentas}
+            />
+            <SummaryItem
+              label="Movimientos"
+              value={ultimoResultado.resumen.movimientos ?? 0}
             />
           </View>
         </View>

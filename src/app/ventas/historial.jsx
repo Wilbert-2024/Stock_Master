@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from "../../constants/measurements";
 import { listarVentas } from "../../services/salesService";
 import { useAppTheme } from "../../theme/AppThemeProvider";
+import { formatLocalSaleDateTime } from "../../utils/saleDateTime";
 
 export default function SalesHistoryScreen() {
   const { colors } = useAppTheme();
@@ -55,7 +56,7 @@ export default function SalesHistoryScreen() {
 
       <View style={[styles.summaryCard, { backgroundColor: colors.header }]}>
         <View>
-          <Text style={styles.summaryLabel}>Total historico</Text>
+          <Text style={styles.summaryLabel}>Total histórico</Text>
           <Text style={styles.summaryTotal}>{formatCurrency(resumen.total)}</Text>
         </View>
 
@@ -88,7 +89,7 @@ export default function SalesHistoryScreen() {
                 No hay ventas registradas
               </Text>
               <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                Las ventas guardadas apareceran aqui.
+                Las ventas guardadas aparecerán aquí.
               </Text>
             </View>
           }
@@ -115,10 +116,10 @@ export default function SalesHistoryScreen() {
                   <PaymentBadge method={item.metodo_pago} />
                 </View>
                 <Text style={[styles.saleDate, { color: colors.textMuted }]}>
-                  {formatDateTime(item.fecha)}
+                  {formatLocalSaleDateTime(item.fecha)}
                 </Text>
                 <Text style={[styles.saleMeta, { color: colors.primary }]}>
-                  {item.cantidad_productos} unidades minimas
+                  {item.cantidad_productos} unidades mínimas
                 </Text>
               </View>
 
@@ -150,14 +151,6 @@ function PaymentBadge({ method }) {
       <Text style={[styles.paymentBadgeText, { color }]}>{normalized}</Text>
     </View>
   );
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return "Sin fecha";
-  }
-
-  return String(value).replace("T", " ");
 }
 
 const styles = StyleSheet.create({

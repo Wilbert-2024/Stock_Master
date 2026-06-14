@@ -225,8 +225,8 @@ export default function NewSaleScreen() {
 
       if (!result.granted) {
         Alert.alert(
-          "Permiso de camara",
-          "Necesitamos acceso a la camara para escanear codigos de barras.",
+          "Permiso de cámara",
+          "Necesitamos acceso a la cámara para escanear códigos de barras.",
         );
         return;
       }
@@ -250,7 +250,7 @@ export default function NewSaleScreen() {
       if (!producto) {
         Alert.alert(
           "Producto no encontrado",
-          `No existe un producto activo con el codigo ${data}.`,
+          `No existe un producto activo con el código ${data}.`,
           [
             {
               text: "Escanear otra vez",
@@ -316,7 +316,7 @@ export default function NewSaleScreen() {
 
     Alert.alert(
       "Confirmar venta",
-      `Total: ${formatCurrency(total)}\nProductos en carrito: ${carrito.length}\nMetodo: ${metodoPago}`,
+      `Total: ${formatCurrency(total)}\nProductos en carrito: ${carrito.length}\nMétodo: ${metodoPago}`,
       [
         { text: "Cancelar", style: "cancel" },
         { text: "Guardar", onPress: guardarVenta },
@@ -333,7 +333,7 @@ export default function NewSaleScreen() {
         recibido: metodoPago === "efectivo" ? recibido : total,
       });
 
-      Alert.alert("Exito", "Venta guardada correctamente");
+      Alert.alert("Éxito", "Venta guardada correctamente");
       router.replace(`/ventas/${ventaId}`);
     } catch (error) {
       Alert.alert("Error", error.message);
@@ -355,7 +355,7 @@ export default function NewSaleScreen() {
           onMountError={({ message }) => {
             Alert.alert(
               "Error",
-              message || "No se pudo iniciar la camara del escaner.",
+              message || "No se pudo iniciar la cámara del escáner.",
             );
           }}
           onBarcodeScanned={
@@ -397,7 +397,7 @@ export default function NewSaleScreen() {
           <View style={styles.instructionsBox}>
             <Text style={styles.instructionsTitle}>Escanear para vender</Text>
             <Text style={styles.instructionsText}>
-              Alinea el codigo de barras dentro del recuadro.
+              Alinea el código de barras dentro del recuadro.
             </Text>
             {escaneoBloqueado ? (
               <Button
@@ -426,7 +426,7 @@ export default function NewSaleScreen() {
         <View style={styles.scanActionTextBox}>
           <Text style={styles.scanActionTitle}>Escanear producto</Text>
           <Text style={styles.scanActionSubtitle}>
-            Buscar por codigo y agregar al carrito
+            Buscar por código y agregar al carrito
           </Text>
         </View>
       </TouchableOpacity>

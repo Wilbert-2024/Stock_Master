@@ -27,6 +27,7 @@ const prepararProducto = async (producto) => {
   const codigo_barras = producto.codigo_barras?.trim() || null;
   const categoria_id = Number(producto.categoria_id);
   const precio = Number(producto.precio);
+  const precio_compra = Number(producto.precio_compra);
   const tipo_medida = producto.tipo_medida ?? "unidad";
   const presentacion_id = producto.presentacion_id ?? "unidad";
   const stockPresentaciones = Number(
@@ -44,21 +45,25 @@ const prepararProducto = async (producto) => {
   }
 
   if (!Number.isInteger(categoria_id) || categoria_id <= 0) {
-    throw new Error("Selecciona una categoria valida");
+    throw new Error("Selecciona una categoría válida");
   }
 
   const categoria = await obtenerCategoriaPorId(categoria_id);
 
   if (!categoria) {
-    throw new Error("La categoria seleccionada no existe");
+    throw new Error("La categoría seleccionada no existe");
   }
 
   if (!Number.isFinite(precio) || precio <= 0) {
     throw new Error("El precio debe ser mayor que cero");
   }
 
+  if (!Number.isFinite(precio_compra) || precio_compra <= 0) {
+    throw new Error("El precio de compra debe ser mayor que cero");
+  }
+
   if (!measurementType) {
-    throw new Error("Selecciona un tipo de medida valido");
+    throw new Error("Selecciona un tipo de medida válido");
   }
 
   if (!presentation) {
@@ -87,13 +92,14 @@ const prepararProducto = async (producto) => {
       productoConCodigo &&
       (!producto.id || Number(producto.id) !== Number(productoConCodigo.id))
     ) {
-      throw new Error("Ya existe un producto activo con ese codigo de barras");
+      throw new Error("Ya existe un producto activo con ese código de barras");
     }
   }
 
   const stock = stockPresentaciones * presentation.baseUnits;
   const stock_minimo = stockMinimoPresentaciones * presentation.baseUnits;
   const precio_base = precio / presentation.baseUnits;
+  const precio_compra_base = precio_compra / presentation.baseUnits;
 
   return {
     cantidad_por_presentacion: presentation.baseUnits,
@@ -103,6 +109,8 @@ const prepararProducto = async (producto) => {
     nombre,
     precio,
     precio_base,
+    precio_compra,
+    precio_compra_base,
     presentacion_id: presentation.id,
     presentacion_nombre: presentation.label,
     stock,
@@ -126,7 +134,7 @@ export const obtenerProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const producto = await obtenerProductoPorId(productId);
@@ -144,7 +152,7 @@ export const editarProducto = async (id, producto) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const productoPreparado = await prepararProducto({ ...producto, id: productId });
@@ -158,7 +166,7 @@ export const eliminarProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   const totalDesactivados = await contarProductosDesactivados();
@@ -183,7 +191,7 @@ export const buscarProductoPorCodigo = async (codigo) => {
   const codigoNormalizado = codigo?.trim();
 
   if (!codigoNormalizado) {
-    throw new Error("Codigo de barras invalido");
+    throw new Error("Código de barras inválido");
   }
 
   return await obtenerProductoPorCodigo(codigoNormalizado);
@@ -200,7 +208,7 @@ export const restaurarProducto = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
   return await reactivarProducto(productId);
@@ -212,10 +220,16 @@ export const borrarProductoDesactivado = async (id) => {
   const productId = Number(id);
 
   if (!Number.isInteger(productId) || productId <= 0) {
-    throw new Error("Producto invalido");
+    throw new Error("Producto inválido");
   }
 
-  return await borrarProductoDefinitivo(productId);
+  const result = await borrarProductoDefinitivo(productId);
+
+  if (Number(result?.changes ?? 0) === 0) {
+    throw new Error("No se pudo borrar el producto desactivado");
+  }
+
+  return result;
 };
 
 export const obtenerDatosInicio = async () => {

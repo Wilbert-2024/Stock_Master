@@ -1,7 +1,10 @@
 import db from "../connection/database";
+import { formatUtcSaleTimestamp } from "../../utils/saleDateTime";
 
 export const insertarProducto = async (producto) => {
   try {
+    await db.execAsync("BEGIN TRANSACTION;");
+
     const {
       cantidad_por_presentacion,
       categoria_id,
@@ -10,6 +13,8 @@ export const insertarProducto = async (producto) => {
       nombre,
       precio,
       precio_base,
+      precio_compra,
+      precio_compra_base,
       presentacion_id,
       presentacion_nombre,
       stock,
@@ -25,6 +30,8 @@ export const insertarProducto = async (producto) => {
         categoria_id,
         precio,
         precio_base,
+        precio_compra,
+        precio_compra_base,
         stock,
         stock_minimo,
         tipo_medida,
@@ -34,13 +41,15 @@ export const insertarProducto = async (producto) => {
         cantidad_por_presentacion,
         fecha_vencimiento
       )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nombre,
         codigo_barras,
         categoria_id,
         precio,
         precio_base,
+        precio_compra,
+        precio_compra_base,
         stock,
         stock_minimo,
         tipo_medida,
@@ -52,8 +61,36 @@ export const insertarProducto = async (producto) => {
       ],
     );
 
+    await db.runAsync(
+      `INSERT INTO movimientos_inventario (
+        producto_id,
+        tipo,
+        cantidad_anterior,
+        cantidad_movida,
+        cantidad_nueva,
+        motivo,
+        origen,
+        responsable,
+        fecha
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        result.lastInsertRowId,
+        stock > 0 ? "entrada" : "ajuste",
+        0,
+        stock,
+        stock,
+        "Registro inicial del producto",
+        "registro_producto",
+        "Propietario",
+        formatUtcSaleTimestamp(),
+      ],
+    );
+
+    await db.execAsync("COMMIT;");
+
     return result;
   } catch (error) {
+    await db.execAsync("ROLLBACK;");
     console.log("Error insertando producto:", error);
     throw error;
   }
@@ -154,6 +191,13 @@ export const obtenerProductoPorCodigo = async (codigo) => {
 
 export const actualizarProducto = async (id, producto) => {
   try {
+    await db.execAsync("BEGIN TRANSACTION;");
+
+    const productoAnterior = await db.getFirstAsync(
+      `SELECT stock FROM productos WHERE id = ? AND activo = 1`,
+      [id],
+    );
+
     const {
       cantidad_por_presentacion,
       categoria_id,
@@ -162,6 +206,8 @@ export const actualizarProducto = async (id, producto) => {
       nombre,
       precio,
       precio_base,
+      precio_compra,
+      precio_compra_base,
       presentacion_id,
       presentacion_nombre,
       stock,
@@ -179,6 +225,8 @@ export const actualizarProducto = async (id, producto) => {
           categoria_id = ?,
           precio = ?,
           precio_base = ?,
+          precio_compra = ?,
+          precio_compra_base = ?,
           stock = ?,
           stock_minimo = ?,
           tipo_medida = ?,
@@ -195,6 +243,8 @@ export const actualizarProducto = async (id, producto) => {
         categoria_id,
         precio,
         precio_base,
+        precio_compra,
+        precio_compra_base,
         stock,
         stock_minimo,
         tipo_medida,
@@ -207,8 +257,41 @@ export const actualizarProducto = async (id, producto) => {
       ],
     );
 
+    const stockAnterior = Number(productoAnterior?.stock ?? stock);
+    const diferenciaStock = stock - stockAnterior;
+
+    if (diferenciaStock !== 0) {
+      await db.runAsync(
+        `INSERT INTO movimientos_inventario (
+          producto_id,
+          tipo,
+          cantidad_anterior,
+          cantidad_movida,
+          cantidad_nueva,
+          motivo,
+          origen,
+          responsable,
+          fecha
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          diferenciaStock > 0 ? "entrada" : "salida",
+          stockAnterior,
+          diferenciaStock,
+          stock,
+          "Ajuste manual de stock",
+          "edicion_producto",
+          "Propietario",
+          formatUtcSaleTimestamp(),
+        ],
+      );
+    }
+
+    await db.execAsync("COMMIT;");
+
     return result;
   } catch (error) {
+    await db.execAsync("ROLLBACK;");
     console.log("Error actualizando producto:", error);
     throw error;
   }
@@ -251,8 +334,22 @@ export const borrarProductoDefinitivo = async (id) => {
 
     return result;
   } catch (error) {
-    console.log("Error borrando producto:", error);
-    throw error;
+    const message = String(error?.message ?? error).toLowerCase();
+
+    if (!message.includes("foreign key")) {
+      console.log("Error borrando producto:", error);
+      throw error;
+    }
+
+    const result = await db.runAsync(
+      `UPDATE productos
+       SET activo = -1,
+           categoria_id = NULL
+       WHERE id = ? AND activo = 0`,
+      [id],
+    );
+
+    return result;
   }
 };
 
