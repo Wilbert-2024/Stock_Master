@@ -195,6 +195,11 @@ export const initDatabase = async () => {
       UPDATE detalle_ventas
       SET ganancia = subtotal - costo_total
       WHERE ganancia = 0 AND costo_total > 0;
+
+      UPDATE productos
+      SET categoria_id = NULL
+      WHERE activo = -1
+        AND categoria_id IS NOT NULL;
     `);
 
     console.log("Base de datos inicializada");

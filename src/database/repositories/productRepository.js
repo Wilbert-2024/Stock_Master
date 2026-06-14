@@ -271,7 +271,10 @@ export const borrarProductoDefinitivo = async (id) => {
     }
 
     const result = await db.runAsync(
-      `UPDATE productos SET activo = -1 WHERE id = ? AND activo = 0`,
+      `UPDATE productos
+       SET activo = -1,
+           categoria_id = NULL
+       WHERE id = ? AND activo = 0`,
       [id],
     );
 
