@@ -69,10 +69,10 @@ const WEEKDAY_NAMES = [
   "Domingo",
   "Lunes",
   "Martes",
-  "Miercoles",
+  "Miércoles",
   "Jueves",
   "Viernes",
-  "Sabado",
+  "Sábado",
 ];
 
 const parseLocalDate = (value) => new Date(`${value}T12:00:00`);
@@ -105,10 +105,14 @@ const formatYearLabel = ({ fechaInicio }) => {
 };
 
 const formatReportCurrency = (value) =>
-  `C$ ${Number.isFinite(value) ? value.toLocaleString("en-US", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  }) : "0.00"}`;
+  `C$ ${
+    Number.isFinite(value)
+      ? value.toLocaleString("en-US", {
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2,
+        })
+      : "0.00"
+  }`;
 
 const buildRows = (items, renderRow, emptyText, columns) => {
   if (!items.length) {
@@ -167,7 +171,8 @@ const crearDetalleVentaHtml = (detalle = []) => {
   `;
 };
 
-const obtenerProductoMasVendido = (productos = []) => productos[0]?.producto_nombre;
+const obtenerProductoMasVendido = (productos = []) =>
+  productos[0]?.producto_nombre;
 
 const obtenerProductoMenosVendido = (productos = []) => {
   if (!productos.length) {
@@ -273,10 +278,12 @@ const obtenerFechasVentas = (ventas = []) => {
     return acc;
   }, {});
 
-  const fechasConVentas = Object.entries(ventasPorFecha).map(([dateKey, data]) => ({
-    dateKey,
-    ...data,
-  }));
+  const fechasConVentas = Object.entries(ventasPorFecha).map(
+    ([dateKey, data]) => ({
+      dateKey,
+      ...data,
+    }),
+  );
 
   if (!fechasConVentas.length) {
     return {
@@ -316,8 +323,12 @@ const obtenerFechasVentas = (ventas = []) => {
   };
 
   return {
-    menosVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMenor)[0].dateKey),
-    masVentas: formatDateWithDay([...fechasConVentas].sort(ordenarPorMayor)[0].dateKey),
+    menosVentas: formatDateWithDay(
+      [...fechasConVentas].sort(ordenarPorMenor)[0].dateKey,
+    ),
+    masVentas: formatDateWithDay(
+      [...fechasConVentas].sort(ordenarPorMayor)[0].dateKey,
+    ),
   };
 };
 
@@ -382,8 +393,12 @@ const obtenerSemanasVentas = (ventas = []) => {
   const formatWeek = (weekNumber) => `Semana #${weekNumber}`;
 
   return {
-    mejorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMayor)[0].weekNumber),
-    peorSemana: formatWeek([...semanasConVentas].sort(ordenarPorMenor)[0].weekNumber),
+    mejorSemana: formatWeek(
+      [...semanasConVentas].sort(ordenarPorMayor)[0].weekNumber,
+    ),
+    peorSemana: formatWeek(
+      [...semanasConVentas].sort(ordenarPorMenor)[0].weekNumber,
+    ),
   };
 };
 
@@ -482,11 +497,11 @@ const crearResumenDiarioHtml = ({ rango, reporte }) => {
       </div>
       <div class="daily-grid">
         <div class="daily-row">
-          <span>Producto Mas Vendido</span>
+          <span>Producto más Vendido</span>
           <strong>${escapeHtml(productoMasVendido)}</strong>
         </div>
         <div class="daily-row">
-          <span>Producto Menos Vendido</span>
+          <span>Producto menos Vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
       </div>
@@ -532,11 +547,11 @@ const crearResumenSemanalHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Dia con Mas Ventas</span>
+          <span>Día con Mas Ventas</span>
           <strong>${escapeHtml(diasVentas.masVentas)}</strong>
         </div>
         <div class="period-row">
-          <span>Dia con Menos Ventas</span>
+          <span>Día con Menos Ventas</span>
           <strong>${escapeHtml(diasVentas.menosVentas)}</strong>
         </div>
       </div>

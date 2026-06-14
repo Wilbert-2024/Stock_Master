@@ -1,5 +1,5 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -21,7 +21,7 @@ import { useAppTheme } from "../theme/AppThemeProvider";
 import { formatLocalSaleDateTime } from "../utils/saleDateTime";
 
 const PERIODS = [
-  { id: "dia", label: "Dia" },
+  { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mes" },
   { id: "anio", label: "Año" },
@@ -152,7 +152,11 @@ export default function ReportsScreen() {
         style={[styles.dateButton, { backgroundColor: colors.card }]}
         onPress={() => setMostrarCalendario(true)}
       >
-        <Ionicons name="calendar-outline" size={22} color={colors.primaryDark} />
+        <Ionicons
+          name="calendar-outline"
+          size={22}
+          color={colors.primaryDark}
+        />
         <View style={styles.dateCopy}>
           <Text style={[styles.dateText, { color: colors.text }]}>
             {rango.titulo}
@@ -217,7 +221,7 @@ export default function ReportsScreen() {
             </Text>
           </View>
 
-          <SectionTitle title="Productos mas vendidos" />
+          <SectionTitle title="Productos más vendidos" />
           {reporte.productos.length === 0 ? (
             <EmptyState text="No hay productos vendidos en este periodo." />
           ) : (
@@ -233,7 +237,9 @@ export default function ReportsScreen() {
                   <Text style={[styles.productName, { color: colors.text }]}>
                     {producto.producto_nombre}
                   </Text>
-                  <Text style={[styles.productMeta, { color: colors.textMuted }]}>
+                  <Text
+                    style={[styles.productMeta, { color: colors.textMuted }]}
+                  >
                     {producto.cantidad_base} x {producto.unidad_base}
                   </Text>
                 </View>
@@ -265,7 +271,9 @@ export default function ReportsScreen() {
                     {formatLocalSaleDateTime(item.fecha)}
                   </Text>
                 </View>
-                <Text style={styles.saleTotal}>{formatCurrency(item.total)}</Text>
+                <Text style={styles.saleTotal}>
+                  {formatCurrency(item.total)}
+                </Text>
               </TouchableOpacity>
             )}
           />
@@ -296,7 +304,7 @@ function obtenerRangoPeriodo(date, periodo) {
     end = new Date(base.getFullYear(), 11, 31, 12);
     titulo = "Año";
   } else {
-    titulo = "Dia";
+    titulo = "Día";
   }
 
   return {
@@ -330,8 +338,12 @@ function SummaryCard({ label, value }) {
 
   return (
     <View style={[styles.summaryCard, { backgroundColor: colors.card }]}>
-      <Text style={[styles.summaryValue, { color: colors.primary }]}>{value}</Text>
-      <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.summaryValue, { color: colors.primary }]}>
+        {value}
+      </Text>
+      <Text style={[styles.summaryLabel, { color: colors.textMuted }]}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -339,7 +351,9 @@ function SummaryCard({ label, value }) {
 function SectionTitle({ title }) {
   const { colors } = useAppTheme();
 
-  return <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>;
+  return (
+    <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+  );
 }
 
 function EmptyState({ text }) {
@@ -347,7 +361,9 @@ function EmptyState({ text }) {
 
   return (
     <View style={[styles.emptyBox, { backgroundColor: colors.card }]}>
-      <Text style={[styles.emptyText, { color: colors.textMuted }]}>{text}</Text>
+      <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+        {text}
+      </Text>
     </View>
   );
 }
