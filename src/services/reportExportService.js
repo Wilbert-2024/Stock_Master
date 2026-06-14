@@ -479,15 +479,15 @@ const crearResumenDiarioHtml = ({ rango, reporte }) => {
       </div>
       <div class="daily-grid">
         <div class="daily-row">
-          <span>Total de Ventas</span>
+          <span>Total de ventas</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
         </div>
         <div class="daily-row">
-          <span>Cantidad de Ventas</span>
+          <span>Cantidad de ventas</span>
           <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
         </div>
         <div class="daily-row">
-          <span>Productos Vendidos</span>
+          <span>Productos vendidos</span>
           <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
         </div>
         <div class="daily-row">
@@ -497,11 +497,11 @@ const crearResumenDiarioHtml = ({ rango, reporte }) => {
       </div>
       <div class="daily-grid">
         <div class="daily-row">
-          <span>Producto más Vendido</span>
+          <span>Producto más vendido</span>
           <strong>${escapeHtml(productoMasVendido)}</strong>
         </div>
         <div class="daily-row">
-          <span>Producto menos Vendido</span>
+          <span>Producto menos vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
       </div>
@@ -529,39 +529,39 @@ const crearResumenSemanalHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Total de Ventas</span>
+          <span>Total de ventas</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
         </div>
         <div class="period-row">
-          <span>Cantidad de Ventas</span>
+          <span>Cantidad de ventas</span>
           <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
         </div>
         <div class="period-row">
-          <span>Productos Vendidos</span>
+          <span>Productos vendidos</span>
           <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
         </div>
         <div class="period-row">
-          <span>Ganancia Estimada</span>
+          <span>Ganancia estimada</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Día con Mas Ventas</span>
+          <span>Día con más ventas</span>
           <strong>${escapeHtml(diasVentas.masVentas)}</strong>
         </div>
         <div class="period-row">
-          <span>Día con Menos Ventas</span>
+          <span>Día con menos ventas</span>
           <strong>${escapeHtml(diasVentas.menosVentas)}</strong>
         </div>
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Producto Mas Vendido</span>
+          <span>Producto más vendido</span>
           <strong>${escapeHtml(productoMasVendido)}</strong>
         </div>
         <div class="period-row">
-          <span>Producto Menos Vendido</span>
+          <span>Producto menos vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
       </div>
@@ -585,39 +585,39 @@ const crearResumenMensualHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Total de Ventas</span>
+          <span>Total de ventas</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
         </div>
         <div class="period-row">
-          <span>Cantidad de Ventas</span>
+          <span>Cantidad de ventas</span>
           <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
         </div>
         <div class="period-row">
-          <span>Productos Vendidos</span>
+          <span>Productos vendidos</span>
           <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
         </div>
         <div class="period-row">
-          <span>Ganancia Estimada</span>
+          <span>Ganancia estimada</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Mejor Semana</span>
+          <span>Mejor semana</span>
           <strong>${escapeHtml(semanasVentas.mejorSemana)}</strong>
         </div>
         <div class="period-row">
-          <span>Peor Semana</span>
+          <span>Peor semana</span>
           <strong>${escapeHtml(semanasVentas.peorSemana)}</strong>
         </div>
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Producto Mas Vendido</span>
+          <span>Producto más vendido</span>
           <strong>${escapeHtml(productoMasVendido)}</strong>
         </div>
         <div class="period-row">
-          <span>Producto Menos Vendido</span>
+          <span>Producto menos vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
       </div>
@@ -645,19 +645,19 @@ const crearResumenAnualHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Total de Ventas</span>
+          <span>Total de ventas</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.montoTotal)))}</strong>
         </div>
         <div class="period-row">
-          <span>Cantidad de Ventas</span>
+          <span>Cantidad de ventas</span>
           <strong>${escapeHtml(reporte.resumen.totalVentas)}</strong>
         </div>
         <div class="period-row">
-          <span>Productos Vendidos</span>
+          <span>Productos vendidos</span>
           <strong>${escapeHtml(reporte.resumen.productosVendidos)}</strong>
         </div>
         <div class="period-row">
-          <span>Ganancia Estimada</span>
+          <span>Ganancia estimada</span>
           <strong>${escapeHtml(formatReportCurrency(Number(reporte.resumen.gananciaTotal)))}</strong>
         </div>
       </div>
@@ -673,11 +673,11 @@ const crearResumenAnualHtml = ({ rango, reporte }) => {
       </div>
       <div class="period-grid">
         <div class="period-row">
-          <span>Producto Mas Vendido</span>
+          <span>Producto más vendido</span>
           <strong>${escapeHtml(productoMasVendido)}</strong>
         </div>
         <div class="period-row">
-          <span>Producto Menos Vendido</span>
+          <span>Producto menos vendido</span>
           <strong>${escapeHtml(productoMenosVendido)}</strong>
         </div>
       </div>
