@@ -2,7 +2,7 @@
   "expo": {
     "name": "StokMaster",
     "slug": "stokmaster",
-    "version": "1.0.0",
+    "version": "2.1.1",
     "orientation": "portrait",
     "scheme": "stokmaster",
     "icon": "./assets/images/icon.png",
@@ -23,7 +23,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundColor": "#001B3F"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -38,6 +41,12 @@
           "recordAudioAndroid": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "07d05360-8c34-4bb7-8598-a3342df36b3f"
+      }
+    }
   }
 }
